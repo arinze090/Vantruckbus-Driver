@@ -174,8 +174,8 @@ const HomeScreen = ({navigation}) => {
   Geolocation.getCurrentPosition(info => console.log('Geolocationinfo', info));
 
   useEffect(() => {
-    productCategories();
-    fetchProducts();
+    // productCategories();
+    // fetchProducts();
   }, []);
 
   return (

@@ -76,7 +76,7 @@ const LoginScreen = ({navigation}) => {
       setLoading(true);
       try {
         await axiosInstance({
-          url: 'authentication/login',
+          url: 'api/auth/login',
           method: 'POST',
           data: loginData,
           headers: {
