@@ -2,28 +2,68 @@ import {StyleSheet, Text, View, ActivityIndicator} from 'react-native';
 import React, {useState} from 'react';
 import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import FormInput from '../../components/form/FormInput';
 import FormButton from '../../components/form/FormButton';
 import {emailValidator} from '../../Library/Validation';
 import HeaderTitle from '../../components/common/HeaderTitle';
-import {useDispatch} from 'react-redux';
 
 import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent';
 import {COLORS} from '../../themes/themes';
 import {windowHeight, windowWidth} from '../../utils/Dimensions';
 import FixedBottomContainer from '../../components/common/FixedBottomContainer';
 import KeyboardAvoidingComponent from '../../components/form/KeyboardAvoidingComponent';
+import axiosInstance from '../../utils/api-client';
+import {RNToast} from '../../Library/Common';
+import {setUserDestination} from '../../redux/features/user/userSlice';
 
 const ForgetPassword = ({navigation, route}) => {
+  const dispatch = useDispatch();
+
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const [emailError, setEmailError] = useState('');
   const [formError, setFormError] = useState('');
 
-  const sendOTPToEmail = () => {};
+  const sendOTPToEmail = async () => {
+    const codeVerificationData = {
+      email: email,
+    };
+    try {
+      setLoading(true);
+      await axiosInstance({
+        url: 'api/auth/forgot-password',
+        method: 'POST',
+        data: codeVerificationData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(res => {
+          console.log('res', res);
+          setLoading(false);
+
+          if (res?.data) {
+            console.log('sendOTPToEmail data', res?.data);
+            dispatch(setUserDestination('ResetPassword'));
+            RNToast(Toast, 'A Verification has been sent to your email');
+
+            navigation.navigate('EmailVerification', {email: email});
+          }
+        })
+        .catch(err => {
+          console.log('sendOTPToEmail err', err);
+          setLoading(false);
+          if (err?.message.includes('Too many requests')) {
+            setFormError('Too many attempts. Please try again later.');
+          }
+        });
+    } catch (error) {
+      console.log('sendOTPToEmail error', error);
+    }
+  };
 
   return (
     <SafeAreaViewComponent>
@@ -75,19 +115,11 @@ const ForgetPassword = ({navigation, route}) => {
         {/* Buttons */}
         <FixedBottomContainer top={1.3}>
           <FormButton
-            title={
-              loading ? (
-                <ActivityIndicator size={'small'} color={'white'} />
-              ) : (
-                'Next'
-              )
-            }
+            title={'Next'}
             formError={formError}
-            onPress={() => {
-              // sendOTPToEmail();
-              navigation.navigate('EmailVerification', {email: email});
-            }}
-            disabled={!emailValidator(email)}
+            onPress={sendOTPToEmail}
+            disabled={loading}
+            loading={loading}
           />
         </FixedBottomContainer>
       </KeyboardAvoidingComponent>

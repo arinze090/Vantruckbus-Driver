@@ -77,14 +77,27 @@ export function formatDateForBackend(dateString) {
 }
 
 export const setPriceTo2DecimalPlaces = price => {
-  const priceFigure = price?.toLocaleString('en-US', {
+  const priceFigure = price?.toLocaleString('en-NG', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'NGN',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
   return priceFigure;
+};
+
+export const formatPriceRange = priceRange => {
+  if (!priceRange || typeof priceRange !== 'string') {
+    return '';
+  }
+  console.log('lll', priceRange);
+  const [min, max] = priceRange.split('-');
+
+  const formattedMin = setPriceTo2DecimalPlaces(Number(min));
+  const formattedMax = setPriceTo2DecimalPlaces(Number(max));
+
+  return `${formattedMin} - ${formattedMax}`;
 };
 
 export function parsePriceRange(priceRangeString) {
@@ -268,10 +281,21 @@ export const formatDateTime = isoString => {
     month: 'long', // Full month name (e.g., "April")
     day: 'numeric', // Day of the month (e.g., "2")
     year: 'numeric', // Full year (e.g., "2025")
-    hour: '2-digit', // Hour in 12-hour format
-    minute: '2-digit', // Minutes with leading zero
-    hour12: true, // Ensures 12-hour format with AM/PM
+    // hour: '2-digit', // Hour in 12-hour format
+    // minute: '2-digit', // Minutes with leading zero
+    // hour12: true, // Ensures 12-hour format with AM/PM
   };
 
   return date.toLocaleString('en-US', options);
+};
+
+export const isPriceWithinRange = (inputPrice, priceRangeArray) => {
+  if (!priceRangeArray?.length || !inputPrice) {
+    return false;
+  }
+
+  const [min, max] = priceRangeArray[0].split('-').map(Number);
+  const price = Number(inputPrice);
+
+  return price >= min && price <= max;
 };

@@ -4,7 +4,6 @@ const initialState = {
   loading: false,
   user: null,
   userRole: null,
-  userPreferences: null,
   token: null,
   launchScreen: null,
   accessToken: null,
@@ -17,25 +16,9 @@ const initialState = {
   shopProduct: null,
   cartProducts: [],
   wishlistProducts: [],
-  userTherapyPreference: null,
-  userTherapists: [],
-  userLifeCoachPreference: null,
-  userLifeCoaches: [],
 
-  // tours section
-  toursLocations: null,
-
-  // therapist section
-  therapistProfile: null,
-  weeklyAvailability: {
-    Monday: [],
-    Tuesday: [],
-    Wednesday: [],
-    Thursday: [],
-    Friday: [],
-    Saturday: [],
-    Sunday: [],
-  },
+  truckListings: null,
+  bookedTrucks: null,
 };
 
 const userSlice = createSlice({
@@ -47,9 +30,6 @@ const userSlice = createSlice({
     },
     saveUserRole: (state, action) => {
       state.userRole = action.payload;
-    },
-    saveUserPreferences: (state, action) => {
-      state.userPreferences = action.payload;
     },
     saveAccessToken: (state, action) => {
       state.accessToken = action.payload;
@@ -77,8 +57,7 @@ const userSlice = createSlice({
       state.accessToken = null;
       state.refreshToken = null;
       state.lastLoginTime = null;
-      state.userTherapyPreference = null;
-      state.userLifeCoachPreference = null;
+
       state.cartProducts = [];
       state.wishlistProducts = [];
       state.shopProduct = null;
@@ -104,8 +83,11 @@ const userSlice = createSlice({
     saveProductCatgeories: (state, action) => {
       state.productCategories = action.payload;
     },
-    saveShopProducts: (state, action) => {
-      state.shopProduct = action.payload;
+    saveTruckListings: (state, action) => {
+      state.truckListings = action.payload;
+    },
+    saveBookedTrucks: (state, action) => {
+      state.bookedTrucks = action.payload;
     },
     saveProductToCart: (state, action) => {
       state.cartProducts = [...state.cartProducts, action.payload];
@@ -130,23 +112,7 @@ const userSlice = createSlice({
 
       state.wishlistProducts = updatedSavedItems;
     },
-    saveUserTherapyPreference: (state, action) => {
-      state.userTherapyPreference = action.payload;
-    },
-    saveUserTherapists: (state, action) => {
-      state.userTherapists = action.payload;
-    },
-    saveUserLifeCoachPreference: (state, action) => {
-      state.userLifeCoachPreference = action.payload;
-    },
-    saveUserLifeCoaches: (state, action) => {
-      state.userLifeCoaches = action.payload;
-    },
 
-    // therapist section
-    saveTherapistProfile: (state, action) => {
-      state.therapistProfile = action.payload;
-    },
     updateWeeklyAvailability: (state, action) => {
       console.log('acccc', action.payload);
       const {day, times} = action.payload;
@@ -154,18 +120,12 @@ const userSlice = createSlice({
         state.weeklyAvailability[day] = times;
       }
     },
-
-    // tourguide section
-    saveTourLocations: (state, action) => {
-      state.toursLocations = action.payload;
-    },
   },
 });
 
 export const {
   getUser,
   saveUserRole,
-  saveUserPreferences,
   saveAccessToken,
   saveRefreshToken,
   setLoading,
@@ -176,22 +136,17 @@ export const {
   APILastFetchTime,
   saveLoginTime,
   saveProductCatgeories,
-  saveShopProducts,
+
+  // truck section
+  saveTruckListings,
+  saveBookedTrucks,
+
   saveProductToCart,
   removeProductFromCart,
   clearCartStore,
   saveProductToWishList,
   removeProductFromWishlist,
-  saveUserTherapyPreference,
-  saveUserTherapists,
-  saveUserLifeCoachPreference,
-  saveUserLifeCoaches,
 
-  // therapist section
-  saveTherapistProfile,
   updateWeeklyAvailability,
-
-  // tourguide
-  saveTourLocations,
 } = userSlice.actions;
 export default userSlice.reducer;

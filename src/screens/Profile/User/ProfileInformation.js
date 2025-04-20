@@ -25,7 +25,7 @@ const ProfileInformation = ({ navigation }) => {
   console.log("loggedInUserRole", loggedInUserRole);
 
   const reduxTherapistProfile = state?.user?.therapistProfile?.profile;
-  const reduxUserProfile = state?.user?.user?.profile;
+  const reduxUserProfile = state?.user?.user;
 
   const userProfle =
     loggedInUserRole == "User" ? reduxUserProfile : reduxTherapistProfile;

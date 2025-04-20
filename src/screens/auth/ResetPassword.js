@@ -8,7 +8,8 @@ import {
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PassMeter from 'react-native-passmeter';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import Toast from 'react-native-toast-message';
 
 import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent';
 import HeaderTitle from '../../components/common/HeaderTitle';
@@ -19,8 +20,13 @@ import FixedBottomContainer from '../../components/common/FixedBottomContainer';
 import FormButton from '../../components/form/FormButton';
 import {windowWidth} from '../../utils/Dimensions';
 import KeyboardAvoidingComponent from '../../components/form/KeyboardAvoidingComponent';
+import axiosInstance from '../../utils/api-client';
+import {RNToast} from '../../Library/Common';
+import {setUserDestination} from '../../redux/features/user/userSlice';
 
 const ResetPassword = ({navigation}) => {
+  const dispatch = useDispatch();
+
   // Passmeter validation
   const MAX_LEN = 15,
     MIN_LEN = 8,
@@ -57,6 +63,44 @@ const ResetPassword = ({navigation}) => {
 
   const checkPasswords = checkPasswordMatch(newPassword, confirmPassword);
   console.log('checkPasswords', checkPasswords);
+
+  const resetPassword = async () => {
+    const codeVerificationData = {
+      password: confirmPassword,
+    };
+    try {
+      setLoading(true);
+      await axiosInstance({
+        url: 'api/auth/reset-password',
+        method: 'POST',
+        data: codeVerificationData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(res => {
+          console.log('resetPassword res', res);
+          setLoading(false);
+
+          if (res?.data) {
+            console.log('resetPassword data', res?.data);
+            RNToast(Toast, 'Your password has been reset successfully');
+
+            navigation.navigate('Login');
+            dispatch(setUserDestination(null));
+          }
+        })
+        .catch(err => {
+          console.log('resetPassword err', err);
+          setLoading(false);
+          if (err?.message.includes('Too many requests')) {
+            setFormError('Too many attempts. Please try again later.');
+          }
+        });
+    } catch (error) {
+      console.log('resetPassword error', error);
+    }
+  };
 
   return (
     <SafeAreaViewComponent>
@@ -107,7 +151,6 @@ const ResetPassword = ({navigation}) => {
             marginTop: newPassword?.length ? -6 : 5,
             padding: 10,
             marginBottom: 10,
-            marginTop: -20,
           }}>
           Use at least 8 characters including 1 uppercase letter, a number and a
           special character like !@#$%%^&*
@@ -156,12 +199,11 @@ const ResetPassword = ({navigation}) => {
         {/* Buttons */}
         <FixedBottomContainer top={1.3}>
           <FormButton
-            title={loading ? <ActivityIndicator color="white" /> : 'Next'}
+            title={'Next'}
             loading={loading}
-            //   onPress={onCodeVerification}
-            onPress={() => {
-              navigation.navigate('SuccessScreen');
-            }}
+            onPress={resetPassword}
+            formError={formError}
+            disabled={loading}
           />
         </FixedBottomContainer>
       </KeyboardAvoidingComponent>

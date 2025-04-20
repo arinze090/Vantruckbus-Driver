@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
 import Toast from 'react-native-toast-message';
+import {useDispatch, useSelector} from 'react-redux';
 
 import HeaderTitle from '../../components/common/HeaderTitle';
 import OTPInput from '../../components/form/OTPInput';
@@ -10,12 +11,18 @@ import {windowHeight, windowWidth} from '../../utils/Dimensions';
 import FormButton from '../../components/form/FormButton';
 import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent';
 import FixedBottomContainer from '../../components/common/FixedBottomContainer';
-import {useSelector} from 'react-redux';
 import {RNToast} from '../../Library/Common';
 import axiosInstance from '../../utils/api-client';
+import {setUserDestination} from '../../redux/features/user/userSlice';
 
 const EmailVerificationScreen = ({navigation, props, route}) => {
   const item = route?.params;
+
+  const dispatch = useDispatch();
+  const state = useSelector(state => state);
+
+  const reduxUserDestination = state?.user?.destination;
+  console.log('reduxUserDestination', reduxUserDestination);
 
   const [verifyCode, setVerifyCode] = useState('');
 
@@ -75,10 +82,11 @@ const EmailVerificationScreen = ({navigation, props, route}) => {
     const codeVerificationData = {
       email: item?.email,
     };
+
     try {
       setLoading(true);
       await axiosInstance({
-        url: 'authentication/resend-verification',
+        url: 'api/auth/resend-verification',
         method: 'POST',
         data: codeVerificationData,
         headers: {
@@ -120,7 +128,7 @@ const EmailVerificationScreen = ({navigation, props, route}) => {
       setLoading(true);
       try {
         await axiosInstance({
-          url: `authentication/verify:${verifyCode}`,
+          url: `api/auth/verify/${verifyCode}`,
           method: 'GET',
         })
           .then(res => {
@@ -129,8 +137,13 @@ const EmailVerificationScreen = ({navigation, props, route}) => {
             if (res?.data) {
               console.log('verify email data', res?.data);
 
-              RNToast(Toast, 'Great, Your account has been verified');
-              navigation.navigate('Login');
+              if (reduxUserDestination) {
+                RNToast(Toast, 'Great, Your account has been verified');
+                navigation.navigate(reduxUserDestination);
+              } else {
+                RNToast(Toast, 'Great, Your account has been verified');
+                navigation.navigate('Login');
+              }
             }
           })
           .catch(err => {

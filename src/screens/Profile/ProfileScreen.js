@@ -87,7 +87,7 @@ const ProfileScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const state = useSelector(state => state);
 
-  const userProfle = state?.user?.user?.profile;
+  const userProfle = state?.user?.user;
   console.log('userProfle', userProfle);
 
   const transformedData = userProfle?.profile_pictures?.map(item => ({
@@ -162,7 +162,7 @@ const ProfileScreen = ({navigation}) => {
               </SkeletonPlaceholder>
             ) : (
               <Image
-                source={{uri: userProfle?.profile_pictures[0]}}
+                source={require('../../assets/user-dummy-img.jpg')}
                 style={styles.image}
                 onPress={() => {
                   setIsVisible(true);

@@ -1,17 +1,15 @@
 export const checkUserProfile = async (dispatch, getUser, axiosInstance) => {
   try {
     const profileResponse = await axiosInstance({
-      url: "profile/private",
-      method: "GET",
+      url: 'api/profile/profile',
+      method: 'GET',
     });
 
-    if (profileResponse?.data?.data && profileResponse?.data?.data?.profile) {
-      dispatch(getUser(profileResponse?.data?.data));
-    } else {
-      // navigation.navigate("OnboardingFlow1");
+    if (profileResponse?.data) {
+      dispatch(getUser(profileResponse?.data));
     }
   } catch (error) {
-    console.error("checkUserProfile check error:", error);
+    console.error('checkUserProfile check error:', error);
     // navigation.navigate("OnboardingFlow1");
   }
 };
@@ -20,19 +18,19 @@ export const checkUserPreferences = async (
   axiosInstance,
   userId,
   dispatch,
-  saveUserPreferences
+  saveUserPreferences,
 ) => {
   try {
     const preferenceResponse = await axiosInstance({
       url: `matchmaking/preference/${userId}`,
-      method: "GET",
+      method: 'GET',
     });
 
     if (preferenceResponse?.data) {
-      console.log("checkUserPreferences res", preferenceResponse?.data);
+      console.log('checkUserPreferences res', preferenceResponse?.data);
       dispatch(saveUserPreferences(preferenceResponse?.data));
     }
   } catch (error) {
-    console.error("User preference check error:", error);
+    console.error('User preference check error:', error);
   }
 };

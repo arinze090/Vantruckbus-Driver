@@ -8,136 +8,34 @@ import {
 import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
+import {useDispatch, useSelector} from 'react-redux';
 
 import SafeAreaViewComponent from '../components/common/SafeAreaViewComponent';
 import HomeHeader from '../components/common/HomeHeader';
 
 import ScrollViewSpace from '../components/common/ScrollViewSpace';
 import Carousels from '../components/common/Carousel';
-import {useDispatch, useSelector} from 'react-redux';
 import {
   saveProductCatgeories,
-  saveShopProducts,
+  saveTruckListings,
 } from '../redux/features/user/userSlice';
 import axiosInstance, {baseURL} from '../utils/api-client';
-import ServicesCard from '../components/cards/ServicesCard';
 import verifyTokenWithoutApi from '../components/hoc/verifyToken';
-import MoreCard from '../components/cards/MoreCard';
 import {COLORS} from '../themes/themes';
 import {windowHeight} from '../utils/Dimensions';
 import FormInput from '../components/form/FormInput';
 import PickerSelect from '../components/pickerSelect/PickerSelect';
-import {rendezvousInterestedInOptions} from '../data/dummyData';
-
-const rendezvousServices = [
-  {
-    id: 1,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1727131385/booking1_agr60w.jpg',
-    title: 'Booking',
-    description:
-      'Book flights, hotels, and unforgettable experiences all in one place.',
-    navigate: 'Booking',
-    imagee:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1741344647/Frame_1-3_hclicq.png',
-  },
-  {
-    id: 2,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1727131407/giftcard3_lhowqu.png',
-    title: 'GiftCards',
-    description:
-      'Give personalized gifts, from wellness experiences to luxury indulgences.',
-    navigate: 'GiftCardScreen',
-    imagee:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1734521568/popular-cards_xnetvh.jpg',
-  },
-  {
-    id: 3,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1742596405/vietnam_k0sxif.jpg',
-    title: 'Tour Guides',
-    description:
-      'Book flights, hotels, and unforgettable experiences all in one place.',
-    navigate: 'TourguideScreen',
-    imagee:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1742596405/vietnam_k0sxif.jpg',
-
-    // 'https://res.cloudinary.com/rendezvouscare/image/upload/v1742595860/tourrr_lqazjb.png',
-  },
-  {
-    id: 4,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1734443460/31177_zra1ir.jpg',
-    title: 'Car Rental',
-    description:
-      'Give personalized gifts, from wellness experiences to luxury indulgences.',
-    navigate: 'CarRental',
-    imagee:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1741374339/image_561-2_uwc3ff.png',
-  },
-];
-
-const rendezvousServices2 = [
-  {
-    id: 1,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1741344648/image_564_vo61ca.png',
-    title: 'Invest in Yourself',
-    navigate: 'Therapy',
-    description:
-      'Take charge of your growth with expert guidance. Book a session with a therapist or life coach.',
-  },
-  {
-    id: 2,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1742595860/tourrr_lqazjb.png',
-    title: 'Plan unforgettable tour experiences',
-    navigate: 'TourguideScreen',
-    description: 'Book a tour guide and explore with ease.',
-  },
-  {
-    id: 3,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1741374339/image_561-2_uwc3ff.png',
-    title: 'Rent the sleekest rides',
-    navigate: 'CarRental',
-    description:
-      'Explore, book, and elevate your journey with seamless car rental services across the globe',
-  },
-  {
-    id: 4,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1741344647/Frame_1-3_hclicq.png',
-    title: 'Book the best Flights and Places',
-    navigate: 'Booking',
-    description:
-      'Book flights, hotels, and unforgettable experiences all in one place.',
-  },
-  {
-    id: 5,
-    image:
-      'https://res.cloudinary.com/rendezvouscare/image/upload/v1727131434/store_y9y927.jpg',
-    title: 'Explore a World of Extraordinary Products',
-    navigate: 'Shop',
-    description:
-      'Shop unique gift items for your loved ones from our carefully curated marketplace.',
-  },
-];
+import VtbTruckCard from '../components/cards/VtbTruckCard';
 
 const HomeScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const state = useSelector(state => state);
 
-  const userProfle = state?.user?.user?.profile;
+  const userProfle = state?.user?.user;
   console.log('userProfle', userProfle);
 
-  const reduxProductCategories = state?.user?.productCategories;
-  console.log('reduxProductCategories', reduxProductCategories);
-
-  const [interestedIn, setInterestedIn] = useState('');
-
-  const [interestedInError, setInterestedInError] = useState('');
+  const reduxTruckListings = state?.user?.truckListings;
+  console.log('reduxTruckListings', reduxTruckListings);
 
   const productCategories = async () => {
     axiosInstance({
@@ -153,21 +51,21 @@ const HomeScreen = ({navigation}) => {
       });
   };
 
-  const fetchProducts = async () => {
+  const fetchTruckListings = async () => {
     try {
       await axiosInstance({
-        url: 'product',
+        url: 'api/listing/all-offerings',
         method: 'GET',
       })
         .then(res => {
-          console.log('fetchProducts res', res?.data);
-          dispatch(saveShopProducts(res?.data?.data?.products));
+          console.log('fetchTruckListings res', res?.data);
+          dispatch(saveTruckListings(res?.data?.data));
         })
         .catch(err => {
-          console.log('fetchProducts err', err?.response?.data);
+          console.log('fetchTruckListings err', err?.response?.data);
         });
     } catch (error) {
-      console.log('fetchProducts error', error);
+      console.log('fetchTruckListings error', error);
     }
   };
 
@@ -175,12 +73,18 @@ const HomeScreen = ({navigation}) => {
 
   useEffect(() => {
     // productCategories();
-    // fetchProducts();
+    fetchTruckListings();
   }, []);
 
   return (
-    <View style={{flex: 1}}>
-      <View style={{backgroundColor: COLORS.vtbBtnColor}}>
+    <View style={{flex: 1}} showsVerticalScrollIndicator={false}>
+      <View
+        style={{
+          backgroundColor: COLORS.vtbBtnColor,
+          marginBottom: 20,
+          borderBottomLeftRadius: 20,
+          borderBottomRightRadius: 20,
+        }}>
         <View style={styles.container}>
           <View style={styles.profileSection}>
             <TouchableOpacity style={styles.menuBorder} activeOpacity={0.9}>
@@ -197,7 +101,7 @@ const HomeScreen = ({navigation}) => {
             <View style={styles.profileDetails}>
               <Text style={styles.profileName}>
                 Hello,{' '}
-                <Text style={{fontWeight: '600'}}>{userProfle?.username} </Text>{' '}
+                <Text style={{fontWeight: '600'}}>{userProfle?.fullname} </Text>
               </Text>
             </View>
           </View>
@@ -224,11 +128,47 @@ const HomeScreen = ({navigation}) => {
           <Text style={{fontSize: 14, color: 'white', marginBottom: 10}}>
             Good Morning, Arinze!
           </Text>
-          <Text style={{fontSize: 18, color: 'white', fontWeight: '600'}}>
+          <Text style={{fontSize: 22, color: 'white', fontWeight: '600'}}>
             Want to Book a Truck ?
           </Text>
         </View>
       </View>
+
+      {/* Carousel section */}
+      <Carousels />
+
+      {/* Popular Trucks */}
+      <ScrollView
+        contentContainerStyle={{padding: 20}}
+        showsVerticalScrollIndicator={false}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 10,
+          }}>
+          <Text style={{fontSize: 14, fontWeight: '600'}}>Popular Trucks</Text>
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '400',
+              textDecorationLine: 'underline',
+            }}>
+            See More
+          </Text>
+        </View>
+        {reduxTruckListings?.map((cur, i) => (
+          <VtbTruckCard
+            key={i}
+            props={cur}
+            onPress={() => {
+              navigation.navigate('TruckDetails');
+            }}
+          />
+        ))}
+
+        <ScrollViewSpace />
+      </ScrollView>
     </View>
   );
 };

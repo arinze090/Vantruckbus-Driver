@@ -30,7 +30,6 @@ import {useDispatch} from 'react-redux';
 import KeyboardAvoidingComponent from '../../components/form/KeyboardAvoidingComponent';
 import axiosInstance from '../../utils/api-client';
 import {RNToast} from '../../Library/Common';
-import {rendezvousWebsiteURL} from '../../data/dummyData';
 
 const LoginScreen = ({navigation}) => {
   const dispatch = useDispatch();
@@ -141,24 +140,26 @@ const LoginScreen = ({navigation}) => {
       dispatch(saveLoginTime(Date.now()));
 
       const profileResponse = await axiosInstance({
-        url: 'profile/private',
+        url: 'api/profile/profile',
         method: 'GET',
         headers: {
           Authorization: `Bearer ${access_token}`,
         },
       });
 
-      if (profileResponse?.data?.data && profileResponse?.data?.data?.profile) {
-        dispatch(getUser(profileResponse?.data?.data));
+      console.log('profdd', profileResponse);
+
+      if (profileResponse?.data) {
+        dispatch(getUser(profileResponse?.data));
         RNToast(Toast, 'Login Successful. Welcome Back! 😇');
 
         // checkUserPreferences(access_token, profileResponse?.data?.data);
       } else {
-        navigation.navigate('OnboardingFlow1');
+        navigation.navigate('OnboardingFlow');
       }
     } catch (error) {
       console.error('checkUserProfile check error:', error);
-      navigation.navigate('OnboardingFlow1');
+      navigation.navigate('OnboardingFlow');
     }
   };
 

@@ -13,6 +13,7 @@ import AccountCreationSuccess from '../screens/auth/AccountCreationSuccess';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AppState} from 'react-native';
 import OnboardingScreen from '../screens/auth/OnboardingScreen';
+import OnboardingFlow from '../screens/auth/OnboardingFlow';
 
 const Stack = createNativeStackNavigator();
 
@@ -93,10 +94,7 @@ const AuthStack = () => {
             />
             <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
             <Stack.Screen name="ResetPassword" component={ResetPassword} />
-            <Stack.Screen
-              name="SuccessScreen"
-              component={AccountCreationSuccess}
-            />
+            <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} />
           </>
         )}
       </Stack.Navigator>

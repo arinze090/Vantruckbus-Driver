@@ -2,7 +2,7 @@ import {Alert, Image, ScrollView, StyleSheet, Text, View} from 'react-native';
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
-import { useDispatch, useSelector } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent';
 import HeaderTitle from '../../components/common/HeaderTitle';
@@ -23,11 +23,7 @@ const ProfileInformation = ({navigation}) => {
   const loggedInUserRole = state?.user?.userRole;
   console.log('loggedInUserRole', loggedInUserRole);
 
-  const reduxTherapistProfile = state?.user?.therapistProfile?.profile;
-  const reduxUserProfile = state?.user?.user?.profile;
-
-  const userProfle =
-    loggedInUserRole == 'User' ? reduxUserProfile : reduxTherapistProfile;
+  const userProfle = state?.user?.user;
   console.log('userProfle', userProfle);
 
   const [loading, setLoading] = useState(false);
@@ -39,60 +35,47 @@ const ProfileInformation = ({navigation}) => {
     userProfle?.fullname ? userProfle?.fullname : '',
   );
   const [phoneNumber, setPhoneNumber] = useState(
-    userProfle?.phone_number ? userProfle?.phone_number : '',
+    userProfle?.User?.phoneNumber ? userProfle?.User?.phoneNumber : '',
   );
   const [country, setCountry] = useState(
     userProfle?.country ? userProfle?.country : '',
   );
-  const [dob, setDob] = useState(userProfle?.dob ? userProfle?.dob : '');
   const [city, setCity] = useState(userProfle?.city ? userProfle?.city : '');
-  const [bio, setBio] = useState(userProfle?.bio ? userProfle?.bio : '');
+  const [address, setAddress] = useState(
+    userProfle?.address ? userProfle?.address : '',
+  );
 
   // Error states
   const [formError, setFormError] = useState('');
   const [fullNameError, setFullNameError] = useState('');
   const [phoneNumberError, setPhoneNumberError] = useState('');
-  const [bioError, setBioError] = useState('');
-  const [dobError, setDobError] = useState('');
+  const [addressError, setAddressError] = useState('');
   const [cityError, setCityError] = useState('');
 
   const updateProfile = async () => {
     const updateProfileData = {
-      // fullname: fullName,
-      // profile_pictures: userProfle?.profile_pictures,
-      phone_number: phoneNumber,
-      personality: userProfle?.personality,
-      bio: bio,
+      fullname: fullName,
+      // phone_number: phoneNumber,
       city: city,
+      address: address,
       // country: userProfle?.country,
-      // dob: userProfle?.dob,
-      relationship_status: userProfle?.relationship_status,
-      height: userProfle?.height,
-      gender: userProfle?.gender,
-      // degree: userProfle?.degree,
-      // employmentStatus: userProfle?.employmentStatus,
-      occupation: userProfle?.occupation,
-      religion: userProfle?.religion,
-      // university: userProfle?.university,
-      interest: userProfle?.interest,
-      hobbies: userProfle?.hobbies,
     };
 
     console.log('updateProfileData', updateProfileData);
 
     if (!fullName) {
       setFullNameError('Please provide your fullname');
-    } else if (!phoneNumber) {
-      setPhoneNumberError('Please provide your valid phone number');
+    // } else if (!phoneNumber) {
+    //   setPhoneNumberError('Please provide your valid phone number');
     } else if (!city) {
       setCityError('Please provide your city');
-    } else if (!bio) {
-      setBioError('Please input your bio');
+    } else if (!address) {
+      setAddressError('Please provide a valid address');
     } else {
       setLoading(true);
       try {
         await axiosInstance({
-          url: 'profile',
+          url: 'api/profile/update-profile',
           method: 'PUT',
           data: updateProfileData,
           headers: {
@@ -157,7 +140,7 @@ const ProfileInformation = ({navigation}) => {
         contentContainerStyle={{paddingTop: 0}}>
         <View style={styles.profileImageSection}>
           <Image
-            source={{uri: userProfle?.profile_pictures[0]}}
+            source={require('../../assets/user-dummy-img.jpg')}
             style={styles.profileImage}
           />
         </View>
@@ -208,22 +191,6 @@ const ProfileInformation = ({navigation}) => {
         />
 
         <FormInput
-          formInputTitle={'Date of Birth'}
-          placeholder="Date of Birth"
-          keyboardType={'default'}
-          editable={false}
-          value={dob}
-          width={1.1}
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={txt => {
-            setDob(txt);
-            setFormError('');
-            setDobError('');
-          }}
-          errorMessage={dobError}
-        />
-        <FormInput
           formInputTitle={'City'}
           placeholder=""
           keyboardType={'default'}
@@ -253,22 +220,22 @@ const ProfileInformation = ({navigation}) => {
           }}
         />
         <FormInput
-          formInputTitle={'Bio'}
+          formInputTitle={'Address'}
           numberOfLines={5}
           multiLine={true}
           keyboardType={'default'}
           height={100}
-          placeholder="Enter your bio"
-          value={bio}
+          placeholder="Enter your address"
+          value={address}
           width={1.1}
           autoCapitalize="none"
           autoCorrect={false}
           onChangeText={txt => {
-            setBio(txt);
+            setAddress(txt);
             setFormError('');
-            setBioError('');
+            setAddressError('');
           }}
-          errorMessage={bioError}
+          errorMessage={addressError}
         />
 
         <ScrollViewSpace />

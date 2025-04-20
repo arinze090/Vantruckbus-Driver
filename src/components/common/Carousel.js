@@ -45,7 +45,7 @@ const Carousels = ({ props }) => {
     <View style={{ position: "relative", marginBottom: 10 }}>
       <Carousel
         loop
-        width={windowWidth / 1.05}
+        width={windowWidth}
         height={200}
         autoPlay={true}
         data={sliderData}
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     paddingLeft: 7,
   },
   descriptionText: {
-    fontSize: 13,
+    fontSize: 11,
     paddingBottom: 100,
     width: windowWidth / 1.5,
     color: "white",

@@ -38,6 +38,11 @@ import SupportScreen from './Profile/SupportScreen';
 import NotificationsScreen from './NotificationsScreen';
 
 import LegalScreen from './Profile/LegalScreen';
+import TruckListing from './TruckListings/TruckListing';
+import TruckDetailsScreen from './TruckListings/TruckDetailsScreen';
+import TruckBookingScreen from './TruckListings/TruckBookingScreen';
+import BookedTrucksListingScreen from './TruckListings/BookedTrucksListingScreen';
+import TruckBookingConfirmationScreen from './TruckListings/TruckBookingConfirmationScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -308,6 +313,66 @@ const ProfileStack = ({navigation}) => (
   </Stack.Navigator>
 );
 
+const TruckListingStack = ({navigation}) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="TruckListing"
+      component={TruckListing}
+      options={{
+        headerShown: false,
+        headerTitle: 'Discover',
+        headerBackTitleVisible: false,
+        // headerLeft: () => (
+        //   <View style={{marginLeft: 10}}>
+        //     <Ionicons
+        //       name="menu-outline"
+        //       size={30}
+        //       color="#333"
+        //       onPress={() => navigation.navigate('Drawer')}
+        //     />
+        //   </View>
+        // ),
+      }}
+    />
+
+    <Stack.Screen
+      name="TruckDetails"
+      component={TruckDetailsScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+
+    <Stack.Screen
+      name="TruckBooking"
+      component={TruckBookingScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+
+    <Stack.Screen
+      name="TruckBookingConfirmation"
+      component={TruckBookingConfirmationScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+  </Stack.Navigator>
+);
+
+const TruckBookingsStack = ({navigation}) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Bookings"
+      component={BookedTrucksListingScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+  </Stack.Navigator>
+);
+
 const MainScreen = () => {
   const state = useSelector(state => state);
   const loggedInUserRole = state?.user?.userRole;
@@ -333,12 +398,10 @@ const MainScreen = () => {
             'ProfileInformation',
             'BasicProfile',
             'AdditionalInformation',
-            'UserPreferences',
-            'CarRental',
-            'Booking',
-            'Subscription',
-            'GiftCardDetails',
-            'Wallet',
+
+            'TruckDetails',
+            'TruckBooking',
+            'TruckBookingConfirmation',
           ];
           if (routeWithNoTarBar.includes(routeName)) {
             return {display: 'none'};
@@ -367,7 +430,7 @@ const MainScreen = () => {
       {loggedInUserRole == 'User' && (
         <Tab.Screen
           name="Trucks"
-          component={ProfileStack}
+          component={TruckListingStack}
           options={({route}) => ({
             tabBarLabel: 'Trucks',
             tabBarIcon: ({color}) => (
@@ -384,9 +447,9 @@ const MainScreen = () => {
       {loggedInUserRole == 'User' && (
         <Tab.Screen
           name="Bookings"
-          component={ProfileStack}
+          component={TruckBookingsStack}
           options={({route}) => ({
-            tabBarLabel: 'Bookings',
+            tabBarLabel: 'My Bookings',
             tabBarIcon: ({color}) => (
               <Ionicons name="receipt-outline" color={color} size={26} />
             ),

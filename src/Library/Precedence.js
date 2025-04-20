@@ -1,22 +1,42 @@
-export const appointmentTextPrecedence = (propss) => {
-  const textPreference =
-    propss?.status == "request"
-      ? "Pending"
-      : propss?.status == "scheduled"
-      ? "Accepted"
-      : "Declined";
-
-  return textPreference;
-};
-
-export const orderDetailsTextPrecedence = (propss) => {
-  const textPreference = propss?.is_refunded
-    ? "Refunded"
-    : propss?.is_cancelled
-    ? "Cancelled"
-    : propss?.is_completed
-    ? "Completed"
-    : "In Progress";
-
-  return textPreference;
+export const statusStyles = {
+  scheduled: {
+    message: 'Booking Confirmed',
+    textColor: '#0A7E07',
+    bgColor: '#D6F5D6',
+  },
+  rescheduled: {
+    message: 'Booking Rescheduled',
+    textColor: '#B87333',
+    bgColor: '#FFEFD5',
+  },
+  cancelled: {
+    message: 'Booking Cancelled',
+    textColor: '#B00020',
+    bgColor: '#FFD6D6',
+  },
+  request: {
+    message: 'Awaiting Approval',
+    textColor: '#1F4E79',
+    bgColor: '#E0F0FF',
+  },
+  completed: {
+    message: 'Delivery Completed',
+    textColor: '#0A7E07',
+    bgColor: '#D6F5D6',
+  },
+  accept: {
+    message: 'Booking Accepted',
+    textColor: '#007BFF',
+    bgColor: '#DDEEFF',
+  },
+  decline: {
+    message: 'Booking Declined',
+    textColor: '#B00020',
+    bgColor: '#FFD6D6',
+  },
+  intransit: {
+    message: 'Truck In Transit',
+    textColor: '#9446A5',
+    bgColor: '#F3E5F5',
+  },
 };
