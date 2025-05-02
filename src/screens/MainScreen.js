@@ -32,8 +32,6 @@ import ProfileInfo from './Profile/ProfileInfo';
 import ProfileInformation from './Profile/User/ProfileInformation';
 import BasicInformation from './Profile/User/BasicInformation';
 
-import WalletScreen from './Profile/WalletScreen';
-
 import SupportScreen from './Profile/SupportScreen';
 import NotificationsScreen from './NotificationsScreen';
 
@@ -161,14 +159,6 @@ const HomeStack = ({navigation}) => (
         headerBackTitleVisible: false,
       }}
     />
-    <Stack.Screen
-      name="Wallet"
-      component={WalletScreen}
-      options={{
-        headerShown: false,
-        headerBackTitleVisible: false,
-      }}
-    />
 
     <Stack.Screen
       name="Support"
@@ -280,14 +270,6 @@ const ProfileStack = ({navigation}) => (
     <Stack.Screen
       name="Bookings"
       component={Bookings}
-      options={{
-        headerShown: false,
-        headerBackTitleVisible: false,
-      }}
-    />
-    <Stack.Screen
-      name="Wallet"
-      component={WalletScreen}
       options={{
         headerShown: false,
         headerBackTitleVisible: false,

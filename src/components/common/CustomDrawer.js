@@ -20,36 +20,6 @@ const drawerNav = [
     name: 'Home',
     navigate: 'HomeScreen',
   },
-  {
-    iconName: 'options-outline',
-    name: 'Strings',
-    navigate: 'Strings',
-  },
-  {
-    iconName: 'trail-sign-outline',
-    name: 'Tours',
-    navigate: 'TourguideScreen',
-  },
-  {
-    iconName: 'airplane-outline',
-    name: 'Bookings',
-    navigate: 'Booking',
-  },
-  {
-    iconName: 'car-outline',
-    name: 'Car Rentals',
-    navigate: 'CarRental',
-  },
-  {
-    iconName: 'gift-outline',
-    name: 'GiftCards',
-    navigate: 'GiftCardScreen',
-  },
-  {
-    iconName: 'newspaper-outline',
-    name: 'Blogs & News Feed',
-    navigate: 'Blog',
-  },
 ];
 
 const CustomDrawer = ({props, iconColor}) => {
