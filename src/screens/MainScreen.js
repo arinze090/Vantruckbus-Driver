@@ -41,6 +41,7 @@ import TruckDetailsScreen from './TruckListings/TruckDetailsScreen';
 import TruckBookingScreen from './TruckListings/TruckBookingScreen';
 import BookedTrucksListingScreen from './TruckListings/BookedTrucksListingScreen';
 import TruckBookingConfirmationScreen from './TruckListings/TruckBookingConfirmationScreen';
+import OnboardingFlow from './auth/OnboardingFlow';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -180,6 +181,25 @@ const HomeStack = ({navigation}) => (
   </Stack.Navigator>
 );
 
+const AuthStack = ({}) => (
+  <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Screen
+      name="Login"
+      component={LoginScreen}
+      screenOptions={{headerShown: false}}
+    />
+    <Stack.Screen name="Register" component={RegisterScreen1} />
+    <Stack.Screen name="Register2" component={RegisterScreen2} />
+    <Stack.Screen
+      name="EmailVerification"
+      component={EmailVerificationScreen}
+    />
+    <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
+    <Stack.Screen name="ResetPassword" component={ResetPassword} />
+    <Stack.Screen name="SuccessScreen" component={AccountCreationSuccess} />
+  </Stack.Navigator>
+);
+
 const ProfileStack = ({navigation}) => (
   <Stack.Navigator>
     <Stack.Screen
@@ -292,6 +312,18 @@ const ProfileStack = ({navigation}) => (
         headerBackTitleVisible: false,
       }}
     />
+
+    {/* auth flows */}
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="Register" component={RegisterScreen1} />
+    <Stack.Screen name="Register2" component={RegisterScreen2} />
+    <Stack.Screen
+      name="EmailVerification"
+      component={EmailVerificationScreen}
+    />
+    <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
+    <Stack.Screen name="ResetPassword" component={ResetPassword} />
+    <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} />
   </Stack.Navigator>
 );
 
@@ -340,6 +372,25 @@ const TruckListingStack = ({navigation}) => (
         headerShown: false,
       }}
     />
+
+    {/* auth flows */}
+    <Stack.Screen
+      name="Login"
+      component={LoginScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+
+    <Stack.Screen name="Register" component={RegisterScreen1} />
+    <Stack.Screen name="Register2" component={RegisterScreen2} />
+    <Stack.Screen
+      name="EmailVerification"
+      component={EmailVerificationScreen}
+    />
+    <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
+    <Stack.Screen name="ResetPassword" component={ResetPassword} />
+    <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} />
   </Stack.Navigator>
 );
 
@@ -352,6 +403,18 @@ const TruckBookingsStack = ({navigation}) => (
         headerShown: false,
       }}
     />
+
+    {/* auth flows */}
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="Register" component={RegisterScreen1} />
+    <Stack.Screen name="Register2" component={RegisterScreen2} />
+    <Stack.Screen
+      name="EmailVerification"
+      component={EmailVerificationScreen}
+    />
+    <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
+    <Stack.Screen name="ResetPassword" component={ResetPassword} />
+    <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} />
   </Stack.Navigator>
 );
 
@@ -359,6 +422,9 @@ const MainScreen = () => {
   const state = useSelector(state => state);
   const loggedInUserRole = state?.user?.userRole;
   console.log('loggedInUserRole', loggedInUserRole);
+
+  const userProfle = state?.user?.user;
+  console.log('userProfle', userProfle);
 
   return (
     <Tab.Navigator
@@ -396,62 +462,54 @@ const MainScreen = () => {
         tabBarColor: COLORS.vtbBtnColor,
         tabBarInActiveBackgroundColor: COLORS.vtbBtnColor,
       })}>
-      {loggedInUserRole == 'User' && (
-        <Tab.Screen
-          name="Home"
-          component={HomeStack}
-          options={({route}) => ({
-            tabBarLabel: 'Home',
-            tabBarIcon: ({color}) => (
-              <Ionicons name="home-outline" color={color} size={26} />
-            ),
-            headerShown: false,
-          })}
-        />
-      )}
-      {loggedInUserRole == 'User' && (
-        <Tab.Screen
-          name="Trucks"
-          component={TruckListingStack}
-          options={({route}) => ({
-            tabBarLabel: 'Trucks',
-            tabBarIcon: ({color}) => (
-              <MaterialCommunityIcons
-                name="truck-outline"
-                color={color}
-                size={26}
-              />
-            ),
-            headerShown: false,
-          })}
-        />
-      )}
-      {loggedInUserRole == 'User' && (
-        <Tab.Screen
-          name="Bookings"
-          component={TruckBookingsStack}
-          options={({route}) => ({
-            tabBarLabel: 'My Bookings',
-            tabBarIcon: ({color}) => (
-              <Ionicons name="receipt-outline" color={color} size={26} />
-            ),
-            headerShown: false,
-          })}
-        />
-      )}
-      {loggedInUserRole == 'User' && (
-        <Tab.Screen
-          name="Profile"
-          component={ProfileStack}
-          options={({route}) => ({
-            tabBarLabel: 'Profile',
-            tabBarIcon: ({color}) => (
-              <Ionicons name="person-outline" color={color} size={26} />
-            ),
-            headerShown: false,
-          })}
-        />
-      )}
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={({route}) => ({
+          tabBarLabel: 'Home',
+          tabBarIcon: ({color}) => (
+            <Ionicons name="home-outline" color={color} size={26} />
+          ),
+          headerShown: false,
+        })}
+      />
+      <Tab.Screen
+        name="Trucks"
+        component={TruckListingStack}
+        options={({route}) => ({
+          tabBarLabel: 'Trucks',
+          tabBarIcon: ({color}) => (
+            <MaterialCommunityIcons
+              name="truck-outline"
+              color={color}
+              size={26}
+            />
+          ),
+          headerShown: false,
+        })}
+      />
+      <Tab.Screen
+        name={'Bookings'}
+        component={userProfle ? TruckBookingsStack : AuthStack}
+        options={({route}) => ({
+          tabBarLabel: 'My Bookings',
+          tabBarIcon: ({color}) => (
+            <Ionicons name="receipt-outline" color={color} size={26} />
+          ),
+          headerShown: false,
+        })}
+      />
+      <Tab.Screen
+        name={'Profile'}
+        component={userProfle ? ProfileStack : AuthStack}
+        options={({route}) => ({
+          tabBarLabel: userProfle ? 'Profile' : 'Login',
+          tabBarIcon: ({color}) => (
+            <Ionicons name="person-outline" color={color} size={26} />
+          ),
+          headerShown: false,
+        })}
+      />
     </Tab.Navigator>
   );
 };

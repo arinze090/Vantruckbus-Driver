@@ -17,7 +17,7 @@ export default function App({}) {
       <ReduxStoreProvider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <NavigationContainer>
-            <MainNavigator />
+            <AppNavigation />
           </NavigationContainer>
         </PersistGate>
       </ReduxStoreProvider>

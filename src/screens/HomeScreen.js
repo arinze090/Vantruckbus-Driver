@@ -173,7 +173,7 @@ const HomeScreen = ({navigation}) => {
   );
 };
 
-export default verifyTokenWithoutApi(HomeScreen);
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {

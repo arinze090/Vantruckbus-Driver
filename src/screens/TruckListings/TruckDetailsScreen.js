@@ -9,6 +9,7 @@ import {
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ImageView from 'react-native-image-viewing';
+import {useDispatch, useSelector} from 'react-redux';
 
 import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent';
 import HeaderTitle from '../../components/common/HeaderTitle';
@@ -22,11 +23,28 @@ const TruckDetailsScreen = ({route, navigation}) => {
   const item = route?.params;
   console.log('item', item);
 
+  const dispatch = useDispatch();
+  const state = useSelector(state => state);
+
+  const userProfle = state?.user?.user;
+  console.log('userProfle', userProfle);
+
   const [visible, setIsVisible] = useState(false);
 
   const transformedData = item?.pictures?.map(item => ({
     uri: item,
   }));
+
+  const BookTruck = async () => {
+    if (userProfle) {
+      navigation.navigate('TruckBooking', item);
+    } else {
+      navigation.navigate('Login', {
+        destination: 'TruckBooking',
+        passedData: item,
+      });
+    }
+  };
 
   return (
     <SafeAreaViewComponent>
@@ -99,8 +117,9 @@ const TruckDetailsScreen = ({route, navigation}) => {
           title={'Book Now'}
           width={1.1}
           onPress={() => {
-            navigation.navigate('TruckBooking', item);
+            BookTruck();
           }}
+          marginBottom={0}
           //   disabled={!email || !password || loading}
           //   formError={formError}
           //   loading={loading}

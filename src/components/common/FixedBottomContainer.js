@@ -13,14 +13,14 @@ const FixedBottomContainer = ({
     <View
       style={{
         top: windowHeight / (top ? top : 1.2),
-        position: "absolute",
+        position: 'absolute',
         width: windowWidth,
         padding: 20,
         flexDirection: flexDirection,
         alignItems: alignItems,
         justifyContent: justifyContent,
-      }}
-    >
+        backgroundColor: 'white',
+      }}>
       {children}
     </View>
   );

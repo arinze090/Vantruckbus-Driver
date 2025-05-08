@@ -24,7 +24,7 @@ const FormButton = ({
   formError,
 }) => {
   return (
-    <View style={{ marginTop: 20 }}>
+    <View style={{ marginTop: 10 }}>
       {formError && <Text style={styles.error}>{formError}</Text>}
       <TouchableOpacity
         activeOpacity={0.9}

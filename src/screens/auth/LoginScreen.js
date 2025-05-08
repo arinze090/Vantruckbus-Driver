@@ -30,8 +30,12 @@ import {useDispatch} from 'react-redux';
 import KeyboardAvoidingComponent from '../../components/form/KeyboardAvoidingComponent';
 import axiosInstance from '../../utils/api-client';
 import {RNToast} from '../../Library/Common';
+import {checkPointFromLogin} from '../../utils/helper';
 
-const LoginScreen = ({navigation}) => {
+const LoginScreen = ({navigation, route}) => {
+  const item = route?.params;
+  console.log('hgsgs', item);
+
   const dispatch = useDispatch();
 
   const [email, setEmail] = useState('');
@@ -153,7 +157,7 @@ const LoginScreen = ({navigation}) => {
         dispatch(getUser(profileResponse?.data));
         RNToast(Toast, 'Login Successful. Welcome Back! 😇');
 
-        // checkUserPreferences(access_token, profileResponse?.data?.data);
+        checkPointFromLogin(navigation, profileResponse?.data, item);
       } else {
         navigation.navigate('OnboardingFlow');
       }
@@ -248,7 +252,7 @@ const LoginScreen = ({navigation}) => {
           Forget Password ?
         </Text>
 
-        <FixedBottomContainer top={1.4}>
+        <FixedBottomContainer top={1.5}>
           <FormButton
             title={'Sign In'}
             width={1.1}
