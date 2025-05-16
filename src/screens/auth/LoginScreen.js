@@ -162,7 +162,7 @@ const LoginScreen = ({navigation, route}) => {
         navigation.navigate('OnboardingFlow');
       }
     } catch (error) {
-      console.error('checkUserProfile check error:', error);
+      console.error('checkUserProfile check error:', error?.response);
       navigation.navigate('OnboardingFlow');
     }
   };

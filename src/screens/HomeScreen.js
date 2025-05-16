@@ -9,6 +9,8 @@ import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import {useDispatch, useSelector} from 'react-redux';
+import axios from 'axios';
+import {HERE_API_KEY} from '@env';
 
 import SafeAreaViewComponent from '../components/common/SafeAreaViewComponent';
 import HomeHeader from '../components/common/HomeHeader';
@@ -22,10 +24,12 @@ import {
 import axiosInstance, {baseURL} from '../utils/api-client';
 import verifyTokenWithoutApi from '../components/hoc/verifyToken';
 import {COLORS} from '../themes/themes';
-import {windowHeight} from '../utils/Dimensions';
+import {windowHeight, windowWidth} from '../utils/Dimensions';
 import FormInput from '../components/form/FormInput';
 import PickerSelect from '../components/pickerSelect/PickerSelect';
 import VtbTruckCard from '../components/cards/VtbTruckCard';
+import {getTimeOfDayGreeting} from '../Library/Common';
+import SearchBar from '../components/search/SearchBar';
 
 const HomeScreen = ({navigation}) => {
   const dispatch = useDispatch();
@@ -37,19 +41,10 @@ const HomeScreen = ({navigation}) => {
   const reduxTruckListings = state?.user?.truckListings;
   console.log('reduxTruckListings', reduxTruckListings);
 
-  const productCategories = async () => {
-    axiosInstance({
-      url: 'category',
-      method: 'GET',
-    })
-      .then(res => {
-        console.log('productCategories res', res);
-        dispatch(saveProductCatgeories(res?.data?.data?.categories));
-      })
-      .catch(err => {
-        console.log('productCategories err', err);
-      });
-  };
+  const greeting = getTimeOfDayGreeting();
+
+  const [userLiveAddress, setUserLiveAddress] = useState();
+  const [coordinates, setCoordinates] = useState();
 
   const fetchTruckListings = async () => {
     try {
@@ -69,11 +64,54 @@ const HomeScreen = ({navigation}) => {
     }
   };
 
-  Geolocation.getCurrentPosition(info => console.log('Geolocationinfo', info));
+  // Geolocation.getCurrentPosition(info => {
+  //   console.log('Geolocationinfo', info);
+  //   setCoordinates(info?.coords);
+  //   reverseGeocode(info?.coords?.latitude, info?.coords?.longitude);
+  // });
+
+  const reverseGeocode = async (lat, lng) => {
+    const apiKey = HERE_API_KEY;
+
+    try {
+      const res = await axios.get(
+        'https://revgeocode.search.hereapi.com/v1/revgeocode',
+        {
+          params: {
+            at: `${lat},${lng}`,
+            apikey: apiKey,
+          },
+        },
+      );
+
+      console.log('reverseGeocode res:', res);
+
+      const address = res?.data?.items?.[0]?.address?.label;
+      setUserLiveAddress(address);
+      console.log('Resolved address:', address);
+      return address;
+    } catch (error) {
+      console.error('Reverse geocoding error:', error?.response);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    // productCategories();
     fetchTruckListings();
+  }, []);
+
+  useEffect(() => {
+    Geolocation.getCurrentPosition(
+      info => {
+        console.log('Geolocationinfo', info);
+        setCoordinates(info?.coords);
+        reverseGeocode(info?.coords?.latitude, info?.coords?.longitude);
+      },
+      error => {
+        console.log('Geolocation error', error);
+      },
+      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+    );
   }, []);
 
   return (
@@ -89,7 +127,7 @@ const HomeScreen = ({navigation}) => {
           <View style={styles.profileSection}>
             <TouchableOpacity style={styles.menuBorder} activeOpacity={0.9}>
               <Ionicons
-                name="menu-outline"
+                name="location-outline"
                 size={25}
                 color="black"
                 onPress={() => {
@@ -99,9 +137,19 @@ const HomeScreen = ({navigation}) => {
             </TouchableOpacity>
 
             <View style={styles.profileDetails}>
-              <Text style={styles.profileName}>
+              {/* <Text style={styles.profileName}>
                 Hello,{' '}
                 <Text style={{fontWeight: '600'}}>{userProfle?.fullname} </Text>
+              </Text> */}
+              <Text
+                numberOfLines={2}
+                style={{
+                  fontSize: 14,
+                  color: 'white',
+                  width: windowWidth / 2,
+                  // backgroundColor: 'red',
+                }}>
+                {userLiveAddress}
               </Text>
             </View>
           </View>
@@ -126,13 +174,24 @@ const HomeScreen = ({navigation}) => {
             alignItems: 'center',
           }}>
           <Text style={{fontSize: 14, color: 'white', marginBottom: 10}}>
-            Good Morning, Arinze!
+            {greeting}, {userProfle?.fullname}!
           </Text>
           <Text style={{fontSize: 22, color: 'white', fontWeight: '600'}}>
             Want to Book a Truck ?
           </Text>
         </View>
       </View>
+
+      <SearchBar
+        onPressIn={() =>
+          navigation.navigate('MapsSearchScreen', {
+            userLiveAddress: userLiveAddress,
+            coordinates: coordinates,
+          })
+        }
+        searchPlaceholder={'Where to'}
+        searchIcon={'search-outline'}
+      />
 
       {/* Carousel section */}
       <Carousels />

@@ -116,17 +116,7 @@ const CustomDrawer = ({props, iconColor}) => {
           padding: 15,
           paddingBottom: 0,
         }}>
-        {!user ? (
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={styles.set}
-            onPress={() => navigation.navigate('Login')}>
-            <View style={styles.setsContent}>
-              <Ionicons name="log-in-outline" size={20} color={iconColor} />
-              <Text style={[styles.settingsText]}>Log In</Text>
-            </View>
-          </TouchableOpacity>
-        ) : (
+        {user ? (
           <View
             style={{
               borderTopColor: '#333',
@@ -161,7 +151,7 @@ const CustomDrawer = ({props, iconColor}) => {
               </View>
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
       </View>
     </View>
   );

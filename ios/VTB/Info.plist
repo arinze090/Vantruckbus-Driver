@@ -51,12 +51,12 @@
 	<string>VanTruckBus requires access to the Calendar</string>
 	<key>NSCameraUsageDescription</key>
 	<string>VanTruckBus app requires photo Camera access to take photo.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>VanTruckBus needs your location to suggest pickup and drop-off points.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>VanTruckBus needs your location to track and update your trips in the background.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>VanTruckBus uses your location to provide delivery updates, even when the app is in the background.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>VanTruckBus needs your location to suggest pickup and drop-off points.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>VanTruckBus app requires permission to use your microphone. Your record wont be shared without your permission.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

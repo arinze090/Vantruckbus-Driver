@@ -57,6 +57,7 @@ const userSlice = createSlice({
       state.accessToken = null;
       state.refreshToken = null;
       state.lastLoginTime = null;
+      state.destination = null;
 
       state.cartProducts = [];
       state.wishlistProducts = [];
@@ -76,6 +77,9 @@ const userSlice = createSlice({
     },
     setUserDestination: (state, action) => {
       state.destination = action.payload;
+    },
+    clearDestination: (state, action) => {
+      state.destination = null;
     },
     APILastFetchTime: (state, action) => {
       state.lastAPIFetchTime = action.payload;
@@ -133,6 +137,7 @@ export const {
   signOut,
   registerUser,
   setUserDestination,
+  clearDestination,
   APILastFetchTime,
   saveLoginTime,
   saveProductCatgeories,

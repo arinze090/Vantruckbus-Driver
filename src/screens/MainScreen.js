@@ -42,6 +42,8 @@ import TruckBookingScreen from './TruckListings/TruckBookingScreen';
 import BookedTrucksListingScreen from './TruckListings/BookedTrucksListingScreen';
 import TruckBookingConfirmationScreen from './TruckListings/TruckBookingConfirmationScreen';
 import OnboardingFlow from './auth/OnboardingFlow';
+import MapsSearchScreen from './MapsSearchScreen';
+import MapDisplayScreen from './MapDisplayScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -66,6 +68,23 @@ const HomeStack = ({navigation}) => (
         ),
       }}
     />
+
+    <Stack.Screen
+      name="MapsSearchScreen"
+      component={MapsSearchScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+
+    <Stack.Screen
+      name="MapsDisplayScreen"
+      component={MapDisplayScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+
     <Stack.Screen
       name="Login"
       component={LoginScreen}
@@ -197,6 +216,7 @@ const AuthStack = ({}) => (
     <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
     <Stack.Screen name="ResetPassword" component={ResetPassword} />
     <Stack.Screen name="SuccessScreen" component={AccountCreationSuccess} />
+    <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} />
   </Stack.Navigator>
 );
 
@@ -314,7 +334,7 @@ const ProfileStack = ({navigation}) => (
     />
 
     {/* auth flows */}
-    <Stack.Screen name="Login" component={LoginScreen} />
+    {/* <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Register" component={RegisterScreen1} />
     <Stack.Screen name="Register2" component={RegisterScreen2} />
     <Stack.Screen
@@ -323,7 +343,7 @@ const ProfileStack = ({navigation}) => (
     />
     <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
     <Stack.Screen name="ResetPassword" component={ResetPassword} />
-    <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} />
+    <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} /> */}
   </Stack.Navigator>
 );
 
@@ -372,25 +392,6 @@ const TruckListingStack = ({navigation}) => (
         headerShown: false,
       }}
     />
-
-    {/* auth flows */}
-    <Stack.Screen
-      name="Login"
-      component={LoginScreen}
-      options={{
-        headerShown: false,
-      }}
-    />
-
-    <Stack.Screen name="Register" component={RegisterScreen1} />
-    <Stack.Screen name="Register2" component={RegisterScreen2} />
-    <Stack.Screen
-      name="EmailVerification"
-      component={EmailVerificationScreen}
-    />
-    <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
-    <Stack.Screen name="ResetPassword" component={ResetPassword} />
-    <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} />
   </Stack.Navigator>
 );
 
@@ -403,18 +404,6 @@ const TruckBookingsStack = ({navigation}) => (
         headerShown: false,
       }}
     />
-
-    {/* auth flows */}
-    <Stack.Screen name="Login" component={LoginScreen} />
-    <Stack.Screen name="Register" component={RegisterScreen1} />
-    <Stack.Screen name="Register2" component={RegisterScreen2} />
-    <Stack.Screen
-      name="EmailVerification"
-      component={EmailVerificationScreen}
-    />
-    <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
-    <Stack.Screen name="ResetPassword" component={ResetPassword} />
-    <Stack.Screen name="OnboardingFlow" component={OnboardingFlow} />
   </Stack.Navigator>
 );
 
@@ -442,10 +431,17 @@ const MainScreen = () => {
             'OrderSummary',
             'OrderSuccessful',
             'OrderReceipt',
-            'Bookings',
+            // 'Bookings',
             'ProfileInformation',
             'BasicProfile',
             'AdditionalInformation',
+            'MapsSearchScreen',
+
+            'EmailVerification',
+            'ForgetPassword',
+            'ResetPassword',
+            'Register',
+            'OnboardingFlow',
 
             'TruckDetails',
             'TruckBooking',
@@ -475,7 +471,7 @@ const MainScreen = () => {
       />
       <Tab.Screen
         name="Trucks"
-        component={TruckListingStack}
+        component={userProfle ? TruckListingStack : AuthStack}
         options={({route}) => ({
           tabBarLabel: 'Trucks',
           tabBarIcon: ({color}) => (

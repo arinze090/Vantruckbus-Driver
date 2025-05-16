@@ -24,6 +24,8 @@ const TruckListing = ({navigation}) => {
   const [loading, setLoading] = useState(false);
 
   const fetchTruckListings = async () => {
+    setLoading(true);
+
     try {
       await axiosInstance({
         url: 'api/listing/all-offerings',
@@ -31,13 +33,17 @@ const TruckListing = ({navigation}) => {
       })
         .then(res => {
           console.log('fetchTruckListings res', res?.data);
+          setLoading(false);
+
           dispatch(saveTruckListings(res?.data?.data));
         })
         .catch(err => {
           console.log('fetchTruckListings err', err?.response?.data);
+          setLoading(false);
         });
     } catch (error) {
       console.log('fetchTruckListings error', error);
+      setLoading(false);
     }
   };
 
