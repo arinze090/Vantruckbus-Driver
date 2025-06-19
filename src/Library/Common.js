@@ -312,3 +312,13 @@ export function getTimeOfDayGreeting() {
     return 'Good Evening';
   }
 }
+
+export const formatToNaira = number => {
+  const numeric = typeof number === 'string' ? parseFloat(number) : number;
+
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 0,
+  }).format(numeric);
+};

@@ -47,6 +47,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>GoogleMapsAPIKey</key>
+	<string>AIzaSyDZpLMKhwoa0H5EnhFWjnNVuafQw0KHDDk</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>VanTruckBus requires access to the Calendar</string>
 	<key>NSCameraUsageDescription</key>

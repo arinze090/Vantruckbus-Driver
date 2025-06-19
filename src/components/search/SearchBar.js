@@ -50,6 +50,7 @@ const SearchBar = ({
             autoFocus={clicked}
             // onFocus={() => setClicked(true)}
             onFocus={onPressIn}
+            autoCorrect={false}
           />
         </TouchableWithoutFeedback>
         {/* cross Icon, depending on whether the search bar is clicked or not */}

@@ -1,20 +1,26 @@
 import {StyleSheet, Text, View, FlatList, TouchableOpacity} from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import axios from 'axios';
-import {HERE_API_KEY} from '@env';
+import {HERE_API_KEY, GOOGLE_MAPS_PLACES_API_KEY} from '@env';
 import debounce from 'lodash.debounce';
 import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from 'react-native-maps';
 import polyline from '@mapbox/polyline';
+import MapboxGL from '@rnmapbox/maps';
 
 import SafeAreaViewComponent from '../components/common/SafeAreaViewComponent';
 import HeaderTitle from '../components/common/HeaderTitle';
 import SearchBar from '../components/search/SearchBar';
 import {COLORS} from '../themes/themes';
-import {windowHeight} from '../utils/Dimensions';
+import {windowHeight, windowWidth} from '../utils/Dimensions';
+
+const LATITUDE_DELTA = 0.0922;
+const LONGITUDE_DELTA = LATITUDE_DELTA * (windowWidth / windowHeight);
 
 const MapsSearchScreen = ({navigation, route}) => {
   const item = route?.params;
   console.log('userLiveAddress', item);
+
+  const mapRef = useRef();
 
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -76,6 +82,7 @@ const MapsSearchScreen = ({navigation, route}) => {
     setSuggestions([]);
 
     getRouteFromHere(pickupCoords, itemx?.position);
+    getRouteFromGoogle(pickupCoords, itemx?.position);
   };
 
   const decodePolyline = encoded => {
@@ -132,6 +139,55 @@ const MapsSearchScreen = ({navigation, route}) => {
     }
   };
 
+  const getRouteFromGoogle = async (origin, destination) => {
+    if (!origin || !destination) {
+      return;
+    }
+
+    const originStr = `${origin.latitude},${origin.longitude}`;
+    const destinationStr = `${destination.lat},${destination.lng}`;
+    const GOOGLE_API_KEY = GOOGLE_MAPS_PLACES_API_KEY;
+    console.log('GOOGLE_API_KEY', GOOGLE_API_KEY);
+
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destinationStr}&mode=driving&key=${GOOGLE_API_KEY}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log('data', data);
+
+      console.log('dddd', data?.routes);
+
+      if (data.status !== 'OK') {
+        console.error(
+          'Google Directions Error:',
+          data.error_message || data.status,
+        );
+        return;
+      }
+
+      const points = data?.routes[0]?.overview_polyline.points;
+      const decoded = polyline.decode(points).map(([lat, lng]) => ({
+        latitude: lat,
+        longitude: lng,
+      }));
+
+      setRouteCoords(decoded);
+
+      const duration = data.routes[0].legs[0].duration.text;
+      const arrivalTime = data.routes[0].legs[0].arrival_time?.text; // only available for transit
+      const distance = data.routes[0].legs[0].distance.text;
+
+      console.log('routesssss', duration, arrivalTime, distance);
+
+      // setRouteInfo({duration, distance});
+
+      console.log('Decoded Route:', decoded);
+    } catch (error) {
+      console.error('Google Directions Error:', error);
+    }
+  };
+
   return (
     <SafeAreaViewComponent>
       <HeaderTitle
@@ -173,26 +229,60 @@ const MapsSearchScreen = ({navigation, route}) => {
 
       {/* this is for displaying like how bolt display the data*/}
       <MapView
-        style={{flex: 1, backgroundColor: 'red', height: windowHeight / 1.4}}
+        style={styles.map}
         provider={PROVIDER_GOOGLE}
-        showsUserLocation={true}
+        showsUserLocation
+        showsMyLocationButton
         initialRegion={{
-          latitude: pickupCoords?.latitude,
-          longitude: pickupCoords?.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}>
+          latitude: pickupCoords?.latitude || 0,
+          longitude: pickupCoords?.longitude || 0,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        }}
+        region={
+          pickupCoords && dropoffCoords
+            ? {
+                latitude: (pickupCoords.latitude + dropoffCoords.latitude) / 2,
+                longitude:
+                  (pickupCoords.longitude + dropoffCoords.longitude) / 2,
+                latitudeDelta:
+                  Math.abs(pickupCoords.latitude - dropoffCoords.latitude) *
+                    2 || LATITUDE_DELTA,
+                longitudeDelta:
+                  Math.abs(pickupCoords.longitude - dropoffCoords.longitude) *
+                    2 || LONGITUDE_DELTA,
+              }
+            : undefined
+        }>
         {/* Pickup Marker */}
-        <Marker coordinate={pickupCoords} title="Pickup" />
+        {pickupCoords && (
+          <Marker
+            coordinate={{
+              latitude: pickupCoords.latitude,
+              longitude: pickupCoords.longitude,
+            }}
+            title="Pickup"
+            pinColor="green"
+          />
+        )}
 
         {/* Dropoff Marker */}
-        <Marker coordinate={dropoffCoords} title="Dropoff" />
+        {dropoffCoords && (
+          <Marker
+            coordinate={{
+              latitude: dropoffCoords.latitude,
+              longitude: dropoffCoords.longitude,
+            }}
+            title="Dropoff"
+            pinColor="red"
+          />
+        )}
 
         {/* Route Polyline */}
-        {routeCoords.length > 0 && (
+        {routeCoords && routeCoords.length > 0 && (
           <Polyline
-            coordinates={routeCoords}
-            strokeColor={COLORS.rendezvousRed}
+            coordinates={routeCoords} // e.g., [{ latitude: ..., longitude: ... }, ...]
+            strokeColor="#4B4DED"
             strokeWidth={4}
           />
         )}

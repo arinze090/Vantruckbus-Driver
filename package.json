@@ -24,6 +24,7 @@
     "@react-navigation/native-stack": "^7.3.10",
     "@react-navigation/stack": "^7.2.10",
     "@reduxjs/toolkit": "^2.6.1",
+    "@rnmapbox/maps": "^10.1.39",
     "axios": "^1.8.4",
     "lodash.debounce": "^4.0.8",
     "moment": "^2.30.1",

@@ -110,7 +110,7 @@ const MapDisplayScreen = ({route}) => {
       <MapView
         ref={mapRef}
         style={styles.map}
-        // provider={PROVIDER_GOOGLE}
+        provider={PROVIDER_GOOGLE}
         zoomEnabled={true} // Allow zooming with gestures
         scrollEnabled={true}
         showsUserLocation

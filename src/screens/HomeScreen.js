@@ -12,21 +12,12 @@ import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {HERE_API_KEY} from '@env';
 
-import SafeAreaViewComponent from '../components/common/SafeAreaViewComponent';
-import HomeHeader from '../components/common/HomeHeader';
-
 import ScrollViewSpace from '../components/common/ScrollViewSpace';
 import Carousels from '../components/common/Carousel';
-import {
-  saveProductCatgeories,
-  saveTruckListings,
-} from '../redux/features/user/userSlice';
+import {saveTruckListings} from '../redux/features/user/userSlice';
 import axiosInstance, {baseURL} from '../utils/api-client';
-import verifyTokenWithoutApi from '../components/hoc/verifyToken';
 import {COLORS} from '../themes/themes';
 import {windowHeight, windowWidth} from '../utils/Dimensions';
-import FormInput from '../components/form/FormInput';
-import PickerSelect from '../components/pickerSelect/PickerSelect';
 import VtbTruckCard from '../components/cards/VtbTruckCard';
 import {getTimeOfDayGreeting} from '../Library/Common';
 import SearchBar from '../components/search/SearchBar';
@@ -221,7 +212,7 @@ const HomeScreen = ({navigation}) => {
             key={i}
             props={cur}
             onPress={() => {
-              navigation.navigate('TruckDetails');
+              navigation.navigate('TruckDetails', cur);
             }}
           />
         ))}

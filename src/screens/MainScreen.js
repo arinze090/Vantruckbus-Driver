@@ -44,6 +44,7 @@ import TruckBookingConfirmationScreen from './TruckListings/TruckBookingConfirma
 import OnboardingFlow from './auth/OnboardingFlow';
 import MapsSearchScreen from './MapsSearchScreen';
 import MapDisplayScreen from './MapDisplayScreen';
+import MapsSearchScreenn from './MapSearchScreenn';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -72,6 +73,14 @@ const HomeStack = ({navigation}) => (
     <Stack.Screen
       name="MapsSearchScreen"
       component={MapsSearchScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+
+    <Stack.Screen
+      name="MapsSearchScreenn"
+      component={MapsSearchScreenn}
       options={{
         headerShown: false,
       }}
@@ -128,6 +137,15 @@ const HomeStack = ({navigation}) => (
         headerShown: false,
       }}
     />
+
+    <Stack.Screen
+      name="TruckDetails"
+      component={TruckDetailsScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+
     <Stack.Screen
       name="SuccessScreen"
       component={AccountCreationSuccess}
