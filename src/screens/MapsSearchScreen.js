@@ -3,15 +3,19 @@ import React, {useState, useEffect, useRef} from 'react';
 import axios from 'axios';
 import {HERE_API_KEY, GOOGLE_MAPS_PLACES_API_KEY} from '@env';
 import debounce from 'lodash.debounce';
-import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from 'react-native-maps';
 import polyline from '@mapbox/polyline';
-import MapboxGL from '@rnmapbox/maps';
 
 import SafeAreaViewComponent from '../components/common/SafeAreaViewComponent';
 import HeaderTitle from '../components/common/HeaderTitle';
 import SearchBar from '../components/search/SearchBar';
 import {COLORS} from '../themes/themes';
 import {windowHeight, windowWidth} from '../utils/Dimensions';
+import {
+  formatDistance,
+  formatDuration,
+  formatPerMinute,
+  formatToNaira,
+} from '../Library/Common';
 
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * (windowWidth / windowHeight);
@@ -21,12 +25,12 @@ const MapsSearchScreen = ({navigation, route}) => {
   console.log('userLiveAddress', item);
 
   const mapRef = useRef();
-
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [selectedQueryData, setSelectedQueryData] = useState();
   const [routeCoords, setRouteCoords] = useState([]);
   const [routeCoordsx, setRouteCoordsx] = useState();
+  const [routeInfo, setRouteInfo] = useState(null);
 
   console.log('selectedQueryData', selectedQueryData, routeCoords);
 
@@ -39,8 +43,6 @@ const MapsSearchScreen = ({navigation, route}) => {
     longitude: selectedQueryData?.position?.lng,
     latitude: selectedQueryData?.position?.lat,
   };
-
-  //   const routeCoords = [pickupCoords, dropoffCoords];
 
   const fetchSuggestions = async text => {
     if (!text) {
@@ -81,110 +83,59 @@ const MapsSearchScreen = ({navigation, route}) => {
     setQuery(itemx?.title);
     setSuggestions([]);
 
-    getRouteFromHere(pickupCoords, itemx?.position);
+    // getRouteFromHere(pickupCoords, itemx?.position);
     getRouteFromGoogle(pickupCoords, itemx?.position);
   };
 
-  const decodePolyline = encoded => {
-    const decoded = polyline.decode(encoded);
-    console.log('decoded', decoded);
-
-    return decoded.map(([lat, lng]) => ({latitude: lat, longitude: lng}));
-  };
-
-  const getRouteFromHere = async (origin, destination) => {
-    const params = {
-      transportMode: 'truck',
-      origin: `${origin?.latitude},${origin?.longitude}`,
-      destination: `${destination?.lat},${destination?.lng}`,
-      return: 'polyline',
-      apiKey: HERE_API_KEY,
-    };
-
-    const queryString = new URLSearchParams(params).toString();
-    const url = `https://router.hereapi.com/v8/routes?${queryString}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response?.json();
-      console.log('getRouteFromHere res', data);
-
-      const polylinex = data?.routes[0]?.sections[0]?.polyline;
-      const newDropOff = data?.routes[0]?.sections[0]?.arrival?.place?.location;
-      const newDropOffCoords = {
-        longitude: newDropOff?.lng,
-        latitude: newDropOff?.lat,
-      };
-      const decoded = decodePolyline(polylinex);
-      console.log('decoded polylinex', decoded);
-
-      setRouteCoords(decoded);
-      console.log('setRouteCoords polylinex', routeCoords);
-
-      navigation.navigate('MapsDisplayScreen', {
-        routeCoords: decoded,
-        pickoffCoords: pickupCoords,
-        dropoffCoords: newDropOffCoords,
-      });
-
-      setRouteCoordsx({
-        routeCoords: decoded,
-        pickoffCoords: pickupCoords,
-        dropoffCoords: newDropOffCoords,
-      });
-
-      //   return decoded;
-    } catch (error) {
-      console.error('Routing error:', error);
-    }
-  };
-
   const getRouteFromGoogle = async (origin, destination) => {
-    if (!origin || !destination) {
-      return;
-    }
-
-    const originStr = `${origin.latitude},${origin.longitude}`;
-    const destinationStr = `${destination.lat},${destination.lng}`;
-    const GOOGLE_API_KEY = GOOGLE_MAPS_PLACES_API_KEY;
-    console.log('GOOGLE_API_KEY', GOOGLE_API_KEY);
-
-    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destinationStr}&mode=driving&key=${GOOGLE_API_KEY}`;
-
     try {
-      const response = await fetch(url);
-      const data = await response.json();
+      const originStr = `${origin.latitude},${origin.longitude}`;
+      const destStr = `${destination.lat},${destination.lng}`;
+      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destStr}&mode=driving&key=${GOOGLE_MAPS_PLACES_API_KEY}`;
+      const res = await fetch(url);
+      const data = await res.json();
       console.log('data', data);
-
       console.log('dddd', data?.routes);
 
       if (data.status !== 'OK') {
-        console.error(
-          'Google Directions Error:',
-          data.error_message || data.status,
-        );
-        return;
+        return console.error(data);
       }
 
-      const points = data?.routes[0]?.overview_polyline.points;
+      const points = data.routes[0].overview_polyline.points;
       const decoded = polyline.decode(points).map(([lat, lng]) => ({
         latitude: lat,
         longitude: lng,
       }));
 
+      const legEndLocation = data.routes[0].legs[0].end_location;
+      const newDropOffCoords = {
+        latitude: legEndLocation.lat,
+        longitude: legEndLocation.lng,
+      };
+
+      const duration = data.routes[0].legs[0].duration.value;
+      const distance = data.routes[0].legs[0].distance.value;
+
       setRouteCoords(decoded);
+      setRouteInfo({duration, distance});
 
-      const duration = data.routes[0].legs[0].duration.text;
-      const arrivalTime = data.routes[0].legs[0].arrival_time?.text; // only available for transit
-      const distance = data.routes[0].legs[0].distance.text;
+      console.log('routesssss', duration, distance, decoded);
+      // mapRef.current.fitToCoordinates(decoded, {
+      //   edgePadding: { top: 60, right: 40, bottom: 60, left: 40 },
+      //   animated: true,
+      // });
 
-      console.log('routesssss', duration, arrivalTime, distance);
-
-      // setRouteInfo({duration, distance});
-
-      console.log('Decoded Route:', decoded);
-    } catch (error) {
-      console.error('Google Directions Error:', error);
+      navigation.navigate('MapsDisplayScreen', {
+        routeCoords: decoded,
+        pickoffCoords: pickupCoords,
+        dropoffCoords: newDropOffCoords,
+        routeInfo: {
+          distance: distance,
+          duration: duration,
+        },
+      });
+    } catch (err) {
+      console.error('Google Routing Error', err);
     }
   };
 
@@ -207,6 +158,33 @@ const MapsSearchScreen = ({navigation, route}) => {
         setSearchPhrase={handleInputChange}
       />
 
+      {/* ✅ Route Information Card */}
+      {routeInfo && (
+        <View style={styles.routeInfoCard}>
+          <View style={styles.routeInfoRow}>
+            <View style={styles.routeInfoItem}>
+              <Text style={styles.routeInfoLabel}>Distance</Text>
+              <Text style={styles.routeInfoValue}>
+                {formatDistance(routeInfo?.distance)}
+              </Text>
+            </View>
+            <View style={styles.routeInfoItem}>
+              <Text style={styles.routeInfoLabel}>Duration</Text>
+              <Text style={styles.routeInfoValue}>
+                {formatDuration(routeInfo?.duration)}
+              </Text>
+            </View>
+            <View style={styles.routeInfoItem}>
+              <Text style={styles.routeInfoLabel}>Est. Cost</Text>
+              <Text style={styles.routeInfoValue}>
+                {/* ₦{Math.round(routeInfo.distance * 150)} */}
+                {formatToNaira(formatPerMinute(routeInfo?.duration) * 1500)}
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
       <FlatList
         data={suggestions}
         keyExtractor={item => item.id}
@@ -226,71 +204,127 @@ const MapsSearchScreen = ({navigation, route}) => {
           </TouchableOpacity>
         )}
       />
-
-      {/* this is for displaying like how bolt display the data*/}
-      <MapView
-        style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        showsUserLocation
-        showsMyLocationButton
-        initialRegion={{
-          latitude: pickupCoords?.latitude || 0,
-          longitude: pickupCoords?.longitude || 0,
-          latitudeDelta: LATITUDE_DELTA,
-          longitudeDelta: LONGITUDE_DELTA,
-        }}
-        region={
-          pickupCoords && dropoffCoords
-            ? {
-                latitude: (pickupCoords.latitude + dropoffCoords.latitude) / 2,
-                longitude:
-                  (pickupCoords.longitude + dropoffCoords.longitude) / 2,
-                latitudeDelta:
-                  Math.abs(pickupCoords.latitude - dropoffCoords.latitude) *
-                    2 || LATITUDE_DELTA,
-                longitudeDelta:
-                  Math.abs(pickupCoords.longitude - dropoffCoords.longitude) *
-                    2 || LONGITUDE_DELTA,
-              }
-            : undefined
-        }>
-        {/* Pickup Marker */}
-        {pickupCoords && (
-          <Marker
-            coordinate={{
-              latitude: pickupCoords.latitude,
-              longitude: pickupCoords.longitude,
-            }}
-            title="Pickup"
-            pinColor="green"
-          />
-        )}
-
-        {/* Dropoff Marker */}
-        {dropoffCoords && (
-          <Marker
-            coordinate={{
-              latitude: dropoffCoords.latitude,
-              longitude: dropoffCoords.longitude,
-            }}
-            title="Dropoff"
-            pinColor="red"
-          />
-        )}
-
-        {/* Route Polyline */}
-        {routeCoords && routeCoords.length > 0 && (
-          <Polyline
-            coordinates={routeCoords} // e.g., [{ latitude: ..., longitude: ... }, ...]
-            strokeColor="#4B4DED"
-            strokeWidth={4}
-          />
-        )}
-      </MapView>
     </SafeAreaViewComponent>
   );
 };
 
 export default MapsSearchScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  mapContainer: {
+    // flex: 1,
+    height: windowHeight,
+  },
+  routeInfoCard: {
+    backgroundColor: '#FFFFFF',
+    margin: 15,
+    padding: 15,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  routeInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  routeInfoItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  routeInfoLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  routeInfoValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  suggestionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    backgroundColor: '#fff',
+  },
+  suggestionTitle: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  suggestionAddress: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  pickupMarker: {
+    alignItems: 'center',
+  },
+  dropoffMarker: {
+    alignItems: 'center',
+  },
+  markerInner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  markerText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  markerPointer: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 12,
+    borderStyle: 'solid',
+    backgroundColor: 'transparent',
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#007AFF',
+    marginTop: -3,
+  },
+  bottomContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: -2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  actionButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});

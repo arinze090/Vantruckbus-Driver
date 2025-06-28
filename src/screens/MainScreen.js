@@ -44,7 +44,7 @@ import TruckBookingConfirmationScreen from './TruckListings/TruckBookingConfirma
 import OnboardingFlow from './auth/OnboardingFlow';
 import MapsSearchScreen from './MapsSearchScreen';
 import MapDisplayScreen from './MapDisplayScreen';
-import MapsSearchScreenn from './MapSearchScreenn';
+import OnboardingScreen2 from './auth/OnboardingScreen2';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -73,14 +73,6 @@ const HomeStack = ({navigation}) => (
     <Stack.Screen
       name="MapsSearchScreen"
       component={MapsSearchScreen}
-      options={{
-        headerShown: false,
-      }}
-    />
-
-    <Stack.Screen
-      name="MapsSearchScreenn"
-      component={MapsSearchScreenn}
       options={{
         headerShown: false,
       }}
@@ -266,6 +258,15 @@ const ProfileStack = ({navigation}) => (
         headerBackTitleVisible: false,
       }}
     />
+    <Stack.Screen
+      name="OnboardingScreen2"
+      component={OnboardingScreen2}
+      options={{
+        headerShown: false,
+        headerBackTitleVisible: false,
+      }}
+    />
+
     <Stack.Screen
       name="EditProfile"
       component={EditProfile}
@@ -464,6 +465,7 @@ const MainScreen = () => {
             'TruckDetails',
             'TruckBooking',
             'TruckBookingConfirmation',
+            'OnboardingScreen2',
           ];
           if (routeWithNoTarBar.includes(routeName)) {
             return {display: 'none'};

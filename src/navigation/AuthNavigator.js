@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useSelector} from 'react-redux';
+import {AppState} from 'react-native';
 
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -9,11 +10,9 @@ import RegisterScreen2 from '../screens/auth/RegisterScreen2';
 import EmailVerificationScreen from '../screens/auth/EmailVerification';
 import ForgetPassword from '../screens/auth/ForgotPassword';
 import ResetPassword from '../screens/auth/ResetPassword';
-import AccountCreationSuccess from '../screens/auth/AccountCreationSuccess';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {AppState} from 'react-native';
-import OnboardingScreen from '../screens/auth/OnboardingScreen';
 import OnboardingFlow from '../screens/auth/OnboardingFlow';
+import OnboardingScreen2 from '../screens/auth/OnboardingScreen2';
 
 const Stack = createNativeStackNavigator();
 
@@ -70,8 +69,8 @@ const AuthStack = () => {
     return (
       <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen
-          name="Onboarding"
-          component={OnboardingScreen}
+          name="OnboardingScreen2"
+          component={OnboardingScreen2}
           options={{
             headerShown: false,
           }}

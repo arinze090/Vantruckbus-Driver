@@ -1,9 +1,22 @@
-import {Image, StyleSheet, Text, View, ScrollView} from 'react-native';
-import React, {useState} from 'react';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  FlatList,
+  TouchableOpacity,
+} from 'react-native';
+import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
+import axios from 'axios';
+import {HERE_API_KEY, GOOGLE_MAPS_PLACES_API_KEY} from '@env';
+import debounce from 'lodash.debounce';
+import polyline from '@mapbox/polyline';
+import {useDispatch, useSelector} from 'react-redux';
 
 import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent';
 import HeaderTitle from '../../components/common/HeaderTitle';
@@ -17,16 +30,25 @@ import {
   extractTime,
   formatPriceRange,
   isPriceWithinRange,
+  metersToKilometers,
   RNToast,
+  formatToNaira,
 } from '../../Library/Common';
 import {COLORS} from '../../themes/themes';
 import {availableTimesForAppointmentDaily} from '../../data/dummyData';
 import CountryPickerx from '../../components/pickerSelect/CountryPicker';
 import axiosInstance from '../../utils/api-client';
+import GoogleSearchInput from '../../components/form/GoogleSearchInput';
 
 const TruckBookingScreen = ({route, navigation}) => {
   const item = route?.params;
   console.log('ddd', item);
+
+  const dispatch = useDispatch();
+  const state = useSelector(state => state);
+
+  const reduxLocationCoordinates = state?.user?.userLocationCoordinates;
+  console.log('reduxLocationCoordinates', reduxLocationCoordinates);
 
   const today = moment().format('YYYY-MM-DD');
 
@@ -44,25 +66,31 @@ const TruckBookingScreen = ({route, navigation}) => {
   const [bookedAppointments, setBookedAppointments] = useState([]);
 
   const [pickupTime, setPickupTime] = useState();
+  const [overallPrice, setOverallPrice] = useState('');
   const [price, setPrice] = useState('');
+
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
-  const [address, setAddress] = useState('');
-  const [deliveryCity, setDeliveryCity] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [countryObject, setCountryObject] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState(''); 
   const [description, setDescription] = useState('');
 
   // Error states
   const [formError, setFormError] = useState('');
   const [pickupTimeError, setPickupTimeError] = useState();
   const [priceError, setPriceError] = useState('');
-  const [countryError, setCountryError] = useState('');
-  const [cityError, setCityError] = useState('');
-  const [addressError, setAddressError] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
-  const [deliveryCityError, setDeliveryCityError] = useState('');
-  const [deliveryAddressError, setDeliveryAddressError] = useState('');
+
+
+  // geolocation states
+  const [query, setQuery] = useState('');
+  const [pickupCoords, setPickupCoords] = useState();
+  const [dropOffCoords, setDropOffCoords] = useState();
+
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedQueryData, setSelectedQueryData] = useState();
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [routeInfo, setRouteInfo] = useState(null);
+  console.log('routeInfo', routeInfo, pickupCoords, dropOffCoords);
 
   const handleDateSelect = day => {
     const date = day.dateString;
@@ -88,6 +116,67 @@ const TruckBookingScreen = ({route, navigation}) => {
       }
     : {};
 
+  const handleSelect = itemx => {
+    console.log('Selected location:', itemx);
+    setSelectedQueryData(itemx);
+    setQuery(itemx?.title);
+    setSuggestions([]);
+  };
+
+  const getRouteFromGoogle = async (origin, destination) => {
+    console.log('originDataaaa: ', origin, destination);
+
+    try {
+      const originStr = `${origin.lat},${origin.lng}`;
+      const destStr = `${destination.lat},${destination.lng}`;
+      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destStr}&mode=driving&key=${GOOGLE_MAPS_PLACES_API_KEY}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      console.log('data', data);
+      console.log('dddd', data?.routes);
+
+      if (data.status !== 'OK') {
+        return console.error(data);
+      }
+
+      const points = data?.routes[0].overview_polyline.points;
+      const decoded = polyline.decode(points).map(([lat, lng]) => ({
+        latitude: lat,
+        longitude: lng,
+      }));
+
+      const legEndLocation = data?.routes[0]?.legs[0]?.end_location;
+      const newDropOffCoords = {
+        latitude: legEndLocation.lat,
+        longitude: legEndLocation.lng,
+      };
+
+      const duration = data?.routes[0]?.legs[0]?.duration?.value;
+      const distance = data?.routes[0]?.legs[0]?.distance?.value;
+
+      setRouteCoords(decoded);
+      setRouteInfo({duration, distance});
+
+      console.log('routesssss', duration, distance, decoded);
+      // mapRef.current.fitToCoordinates(decoded, {
+      //   edgePadding: { top: 60, right: 40, bottom: 60, left: 40 },
+      //   animated: true,
+      // });
+
+      // navigation.navigate('MapsDisplayScreen', {
+      //   routeCoords: decoded,
+      //   pickoffCoords: pickupCoords,
+      //   dropoffCoords: newDropOffCoords,
+      //   routeInfo: {
+      //     distance: distance,
+      //     duration: duration,
+      //   },
+      // });
+    } catch (err) {
+      console.error('Google Routing Error', err);
+    }
+  };
+
   const bookAppointment = async () => {
     const bookingData = {
       truckInfo: item,
@@ -99,18 +188,23 @@ const TruckBookingScreen = ({route, navigation}) => {
       description: description,
       price: parseInt(price),
       pickupLocation: {
-        address: address,
+        address: pickupCoords?.address?.label,
         city: city,
         country: country,
       },
       deliveryLocation: {
-        address: deliveryAddress,
+        address: dropOffCoords?.address?.label,
         city: deliveryCity,
         country: country,
       },
 
       status: 'request',
       reminders: [15, 60],
+      negotiation: {
+        proposedBy: 'user',
+        userOffer: price,
+        status: 'proposed',
+      },
     };
 
     console.log('bookingData', bookingData);
@@ -121,18 +215,35 @@ const TruckBookingScreen = ({route, navigation}) => {
       setPickupTimeError('please select a time for your delivery');
     } else if (!price) {
       setPriceError('Please provide your bargain price');
-    } else if (!country) {
-      setCountryError('please select a country');
-    } else if (!city) {
-      setPriceError('Please provide your pickup city');
-    } else if (!address) {
-      setAddressError('please provide you pickup address');
     } else if (!description) {
       setDescriptionError('Please provide a brief description');
     } else {
       navigation.navigate('TruckBookingConfirmation', bookingData);
     }
   };
+
+  useEffect(() => {
+    if (pickupCoords && dropOffCoords) {
+      getRouteFromGoogle(pickupCoords?.position, dropOffCoords?.position);
+    }
+  }, [pickupCoords, dropOffCoords]);
+
+  useEffect(() => {
+    if (routeInfo) {
+      const durationInKm = metersToKilometers(routeInfo?.distance);
+      const truckBasefare = item?.price?.[0];
+      const overallPrice = durationInKm * truckBasefare;
+      console.log(
+        'overallPrice',
+        overallPrice,
+        truckBasefare,
+        durationInKm,
+        routeInfo,
+      );
+      setOverallPrice(formatToNaira(overallPrice?.toString()));
+      setPrice(overallPrice);
+    }
+  }, [routeInfo]);
 
   return (
     <SafeAreaViewComponent>
@@ -196,6 +307,42 @@ const TruckBookingScreen = ({route, navigation}) => {
 
         {selectedDate && (
           <View style={{marginTop: 20}}>
+            <GoogleSearchInput
+              formInputTitle={'Pickup Location'}
+              onSelect={location => {
+                console.log('User selected:', location);
+                setPickupCoords(location);
+              }}
+            />
+
+            <GoogleSearchInput
+              formInputTitle={'Dropoff Location'}
+              onSelect={location => {
+                console.log('DropOffCoords selected:', location);
+                setDropOffCoords(location);
+              }}
+            />
+
+            <FlatList
+              data={suggestions}
+              keyExtractor={item => item.id}
+              renderItem={({item}) => (
+                <TouchableOpacity
+                  onPress={() => handleSelect(item)}
+                  style={{
+                    paddingVertical: 10,
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#eee',
+                    padding: 10,
+                  }}>
+                  <Text style={{color: 'black'}}>{item?.title}</Text>
+                  {item?.address && (
+                    <Text style={{color: '#888'}}>{item?.address?.label}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+
             <PickerSelect
               items={transformedBookingTimesData}
               placeholder={'Select your pickup time'}
@@ -209,81 +356,12 @@ const TruckBookingScreen = ({route, navigation}) => {
             />
 
             <FormInput
-              formInputTitle={'Price'}
+              formInputTitle={'Price (naira)'}
               keyboardType={'number-pad'}
               placeholder="Enter your your price"
-              value={price}
-              onChangeText={txt => {
-                setPrice(txt);
-                setPriceError('');
-                setFormError('');
-
-                const isValid = isPriceWithinRange(txt, item?.price);
-                if (!isValid) {
-                  setPriceError('Entered price is outside allowed range.');
-                }
-              }}
+              value={overallPrice}
               errorMessage={priceError}
-            />
-
-            <CountryPickerx
-              formInputTitle={'Country'}
-              countryError={countryError}
-              setCountry={setCountry}
-              setFormError={setFormError}
-              setCountryObject={setCountryObject}
-            />
-
-            <FormInput
-              formInputTitle={'Pickup State'}
-              keyboardType={'default'}
-              placeholder="Enter your pickup state"
-              value={city}
-              onChangeText={txt => {
-                setCity(txt);
-                setCityError('');
-                setFormError('');
-              }}
-              errorMessage={cityError}
-            />
-
-            <FormInput
-              formInputTitle={'Pickup Address'}
-              keyboardType={'default'}
-              placeholder="Enter your pickup address"
-              value={address}
-              onChangeText={txt => {
-                setAddress(txt);
-                setAddressError('');
-                setFormError('');
-              }}
-              errorMessage={addressError}
-            />
-
-            <FormInput
-              formInputTitle={'Delivery State'}
-              keyboardType={'default'}
-              placeholder="Enter your delivery state"
-              value={deliveryCity}
-              onChangeText={txt => {
-                setDeliveryCity(txt);
-                setDeliveryCityError('');
-                setFormError('');
-              }}
-              errorMessage={deliveryCityError}
-            />
-
-            <FormInput
-              formInputTitle={'Delivery Address'}
-              keyboardType={'default'}
-              placeholder="Enter your delivery address"
-              value={deliveryAddress}
-              onChangeText={txt => {
-                setDeliveryAddress(txt);
-                setDeliveryAddressError('');
-                setFormError('');
-              }}
-              errorMessage={deliveryAddressError}
+              editable={false}
             />
 
             <FormInput

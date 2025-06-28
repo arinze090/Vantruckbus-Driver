@@ -17,11 +17,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   ) -> Bool {
 
    // Get API key from Info.plist for better security
-    guard let apiKey = Bundle.main.object(forInfoDictionaryKey: "GoogleMapsAPIKey") as? String else {
-      fatalError("Google Maps API key not found in Info.plist")
-    }
-    
-    GMSServices.provideAPIKey(apiKey)
+    // guard let apiKey = Bundle.main.infoDictionary?["AIzaSyDZpLMKhwoa0H5EnhFWjnNVuafQw0KHDDk"] as? String else {
+    //   fatalError("Google Maps API key not found in Info.plist")
+    // }
+
+    GMSServices.provideAPIKey("AIzaSyDZpLMKhwoa0H5EnhFWjnNVuafQw0KHDDk")
     
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)

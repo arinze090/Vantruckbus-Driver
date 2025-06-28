@@ -46,6 +46,11 @@ const TruckBookingConfirmationScreen = ({navigation, route}) => {
 
       status: 'request',
       reminders: [15, 60],
+      negotiation: {
+        proposedBy: 'user',
+        userOffer: item?.price,
+        status: 'proposed',
+      },
     };
 
     console.log('bookingData', bookingData);

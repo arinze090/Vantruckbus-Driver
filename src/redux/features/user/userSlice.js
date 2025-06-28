@@ -19,6 +19,7 @@ const initialState = {
 
   truckListings: null,
   bookedTrucks: null,
+  userLocationCoordinates: null,
 };
 
 const userSlice = createSlice({
@@ -124,6 +125,10 @@ const userSlice = createSlice({
         state.weeklyAvailability[day] = times;
       }
     },
+
+    saveUserLocationCoordinates: (state, action) => {
+      state.userLocationCoordinates = action.payload;
+    },
   },
 });
 
@@ -141,6 +146,9 @@ export const {
   APILastFetchTime,
   saveLoginTime,
   saveProductCatgeories,
+
+  // user location coordinates
+  saveUserLocationCoordinates,
 
   // truck section
   saveTruckListings,

@@ -13,8 +13,10 @@ import axios from 'axios';
 import {HERE_API_KEY} from '@env';
 
 import ScrollViewSpace from '../components/common/ScrollViewSpace';
-import Carousels from '../components/common/Carousel';
-import {saveTruckListings} from '../redux/features/user/userSlice';
+import {
+  saveTruckListings,
+  saveUserLocationCoordinates,
+} from '../redux/features/user/userSlice';
 import axiosInstance, {baseURL} from '../utils/api-client';
 import {COLORS} from '../themes/themes';
 import {windowHeight, windowWidth} from '../utils/Dimensions';
@@ -40,7 +42,7 @@ const HomeScreen = ({navigation}) => {
   const fetchTruckListings = async () => {
     try {
       await axiosInstance({
-        url: 'api/listing/all-offerings',
+        url: 'api/listings/all-offerings',
         method: 'GET',
       })
         .then(res => {
@@ -54,12 +56,6 @@ const HomeScreen = ({navigation}) => {
       console.log('fetchTruckListings error', error);
     }
   };
-
-  // Geolocation.getCurrentPosition(info => {
-  //   console.log('Geolocationinfo', info);
-  //   setCoordinates(info?.coords);
-  //   reverseGeocode(info?.coords?.latitude, info?.coords?.longitude);
-  // });
 
   const reverseGeocode = async (lat, lng) => {
     const apiKey = HERE_API_KEY;
@@ -97,6 +93,9 @@ const HomeScreen = ({navigation}) => {
         console.log('Geolocationinfo', info);
         setCoordinates(info?.coords);
         reverseGeocode(info?.coords?.latitude, info?.coords?.longitude);
+
+        // dispatch the coordinates to redux just incase its used elsewhere
+        dispatch(saveUserLocationCoordinates(info?.coords));
       },
       error => {
         console.log('Geolocation error', error);
@@ -185,7 +184,7 @@ const HomeScreen = ({navigation}) => {
       />
 
       {/* Carousel section */}
-      <Carousels />
+      {/* <Carousels /> */}
 
       {/* Popular Trucks */}
       <ScrollView

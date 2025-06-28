@@ -322,3 +322,51 @@ export const formatToNaira = number => {
     minimumFractionDigits: 0,
   }).format(numeric);
 };
+
+export const formatDistance = meters => {
+  if (meters < 1000) {
+    return `${Math.round(meters)} m`;
+  }
+  return `${(meters / 1000).toFixed(1)} km`;
+};
+
+export const formatDuration = seconds => {
+  if (seconds < 60) {
+    return `${Math.round(seconds)} sec`;
+  } else if (seconds < 3600) {
+    return `${Math.round(seconds / 60)} min`;
+  } else {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.round((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  }
+};
+
+export const formatPerMinute = seconds => {
+  if (seconds < 60) {
+    return `${Math.round(seconds)}`;
+  } else {
+    console.log('fff', `${Math.round(seconds / 60)}`);
+    return `${Math.round(seconds / 60)}`;
+  }
+};
+
+export const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Radius of Earth in KM
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in km
+};
+
+export const metersToKilometers = meters => {
+  if (!meters || isNaN(meters)) {
+    return '0 km';
+  }
+  return `${(meters / 1000).toFixed(2)}`;
+};

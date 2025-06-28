@@ -2,25 +2,21 @@ import React, {useEffect, useState} from 'react';
 import {AppState, Image, StyleSheet} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch, useSelector} from 'react-redux';
 
 import {createStackNavigator} from '@react-navigation/stack';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {COLORS} from '../themes/themes';
 import CustomDrawer from '../components/common/CustomDrawer';
 import MainScreen from '../screens/MainScreen';
+import SplashScreen from '../screens/SplashScreen';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
 
 const AppNavigation = () => {
-  const dispatch = useDispatch();
-  const state = useSelector(state => state);
-
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Set isLoading to false after 3 seconds
@@ -101,16 +97,26 @@ const AppNavigation = () => {
           drawerInactiveTintColor: COLORS.btnBorderColor,
         }}
         headerMode="none">
-        <Stack.Screen
-          name="Home"
-          component={MainScreen}
-          options={{
-            headerShown: false,
-            drawerIcon: ({color}) => (
-              <Ionicons name="home-outline" color={color} size={22} />
-            ),
-          }}
-        />
+        {isLoading ? (
+          <Stack.Screen
+            name="Splash"
+            component={SplashScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+        ) : (
+          <Stack.Screen
+            name="Home"
+            component={MainScreen}
+            options={{
+              headerShown: false,
+              drawerIcon: ({color}) => (
+                <Ionicons name="home-outline" color={color} size={22} />
+              ),
+            }}
+          />
+        )}
       </Drawer.Navigator>
     );
   }
