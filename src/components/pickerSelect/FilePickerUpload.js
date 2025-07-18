@@ -6,104 +6,67 @@ import {COLORS} from '../../themes/themes';
 import FormInputTitle from '../form/FormInputTitle';
 import UploadButtons from '../form/UploadButtons';
 
-const ImagePickerUpload = ({image, onOpenGallery, onClearImagePress}) => {
+const FilePickerUpload = ({
+  formTitle,
+  image,
+  onOpenGallery,
+  previewFile,
+  removeFile,
+}) => {
   return (
     <View style={styles.coverArtContainer}>
-      <FormInputTitle formTitle={'Upload profile picture *'} />
+      <FormInputTitle formTitle={formTitle} />
 
       {!image ? (
-        <View style={{marginTop: 20}}>
+        <View>
           <TouchableOpacity
+            activeOpacity={0.9}
             style={[styles.uploadContainer]}
             onPress={onOpenGallery}>
             <Ionicons
-              name="person-outline"
+              name="folder-outline"
               color={COLORS.vtbBtnColor}
               size={50}
             />
           </TouchableOpacity>
-          <View style={styles.paddingTips}>
-            <Text style={{marginBottom: 10, fontWeight: '600'}}>Tips</Text>
-            <Text style={styles.paddingTipsText}>
-              - Take pictures in well lighted places
-            </Text>
-            <Text style={styles.paddingTipsText}>
-              - Upload high quality pictures in well lighted places
-            </Text>
-            <Text style={styles.paddingTipsText}>
-              - Upload pictures in PNG or JPG format
-            </Text>
-          </View>
         </View>
       ) : (
-        <View style={{marginTop: 20}}>
+        <View style={styles.previewWrapper}>
           <TouchableOpacity
+            activeOpacity={0.9}
             // style={[styles.uploadContainer]}
-            onPress={onOpenGallery}>
+            onPress={previewFile}>
             <Image source={{uri: image}} style={styles.uploadContainer} />
           </TouchableOpacity>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              marginBottom: 20,
-              justifyContent: 'space-between',
-            }}>
-            <UploadButtons
-              leftIcon={'camera-outline'}
-              iconColor={COLORS.vtbBtnColor}
-              borderColor={COLORS.vtbBtnColor}
-              borderWidth={1}
-              width={2.5}
-              title={'Clear Image'}
-              onPress={onClearImagePress}
-            />
-            <UploadButtons
-              leftIcon={'image-outline'}
-              iconColor={COLORS.vtbBtnColor}
-              backgroundColor={COLORS.white}
-              width={2.5}
-              title={'Change Picture'}
-              onPress={onOpenGallery}
-            />
-          </View>
-          <View style={styles.paddingTips}>
-            <Text style={{marginBottom: 10, fontWeight: '600'}}>Tips</Text>
-            <Text style={styles.paddingTipsText}>
-              - Take pictures in well lighted places
-            </Text>
-            <Text style={styles.paddingTipsText}>
-              - Upload high quality pictures in well lighted places
-            </Text>
-            <Text style={styles.paddingTipsText}>
-              - Upload pictures in PNG or JPG format
-            </Text>
-          </View>
+          {/* Floating 'X' Button */}
+          <TouchableOpacity style={styles.cancelIcon} onPress={removeFile}>
+            <Ionicons name="close-circle" size={28} color="#fff" />
+          </TouchableOpacity>
         </View>
       )}
     </View>
   );
 };
 
-export default ImagePickerUpload;
+export default FilePickerUpload;
 
 const styles = StyleSheet.create({
   coverArtContainer: {
     width: windowWidth / 1.1,
     height: windowHeight / 4,
     // backgroundColor: 'red',
-    marginLeft: 20,
-    // justifyContent: 'center',
-    // alignContent: 'center',
+    // marginLeft: 20,
+    justifyContent: 'center',
+    alignContent: 'center',
     // alignItems: 'center',
-    // alignSelf: 'center',
+    alignSelf: 'center',
     // marginBottom: 20,
-    marginTop: 20,
+    // marginTop: 20,
   },
   uploadContainer: {
-    width: 173,
-    height: 173,
-    backgroundColor: COLORS.white,
+    width: windowWidth / 1.1,
+    height: 150,
+    // backgroundColor: COLORS.rendezvousRed,
     // marginLeft: 20,
     justifyContent: 'center',
     alignContent: 'center',
@@ -112,18 +75,18 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
     // borderStyle: 'dashed',
     marginBottom: 20,
-    borderRadius: windowWidth / 2,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: COLORS.vtbBtnColor,
   },
-  cancelIcon: {
-    position: 'absolute',
-    zIndex: 999,
-    opacity: 0.9,
-    backgroundColor: 'black',
-    right: 0,
-    top: 0,
-  },
+  // cancelIcon: {
+  //   position: 'absolute',
+  //   zIndex: 999,
+  //   opacity: 0.9,
+  //   backgroundColor: 'black',
+  //   right: 0,
+  //   top: 0,
+  // },
   imageContainer: {
     width: windowWidth / 1.1,
     height: windowHeight / 5,
@@ -173,5 +136,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
     color: COLORS.appGrey5,
+  },
+  previewWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    // zIndex: 2,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
   },
 });

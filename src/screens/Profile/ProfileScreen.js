@@ -19,6 +19,7 @@ import ProfileOptionsDisplay from '../../components/common/ProfileOptionsDisplay
 import ScrollViewSpace from '../../components/common/ScrollViewSpace';
 import {COLORS} from '../../themes/themes';
 import axiosInstance from '../../utils/api-client';
+import VerificationStatus from '../../components/common/VerificationStatusBadge';
 
 const settings = [
   {
@@ -88,7 +89,8 @@ const ProfileScreen = ({navigation}) => {
   const state = useSelector(state => state);
 
   const userProfle = state?.user?.user;
-  console.log('userProfle', userProfle);
+  const hasVerificationData = userProfle?.User?.verification;
+  console.log('userProfle', userProfle, hasVerificationData);
 
   const transformedData = userProfle?.profile_pictures?.map(item => ({
     uri: item,
@@ -162,7 +164,7 @@ const ProfileScreen = ({navigation}) => {
               </SkeletonPlaceholder>
             ) : (
               <Image
-                source={require('../../assets/user-dummy-img.jpg')}
+                source={{uri: userProfle?.profilePicture}}
                 style={styles.image}
                 onPress={() => {
                   setIsVisible(true);
@@ -171,7 +173,12 @@ const ProfileScreen = ({navigation}) => {
             )}
           </TouchableOpacity>
           <View style={styles.profileDetails}>
-            <Text style={styles.profileName}>{userProfle?.fullname}</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.profileName}>{userProfle?.fullName}</Text>
+              <VerificationStatus
+                status={hasVerificationData?.verificationStatus}
+              />
+            </View>
             <Text style={styles.profileEmail}>{userProfle?.User?.email}</Text>
           </View>
         </View>

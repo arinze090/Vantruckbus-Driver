@@ -5,8 +5,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {useDispatch} from 'react-redux';
+import moment from 'moment';
+import DatePicker from 'react-native-date-picker';
+import PhoneInput from 'react-native-phone-number-input';
 
 import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent';
 import KeyboardAvoidingComponent from '../../components/form/KeyboardAvoidingComponent';
@@ -17,10 +20,8 @@ import FixedBottomContainer from '../../components/common/FixedBottomContainer';
 import FormButton from '../../components/form/FormButton';
 import {COLORS} from '../../themes/themes';
 import CountryPickerx from '../../components/pickerSelect/CountryPicker';
-import {RNToast} from '../../Library/Common';
-import Toast from 'react-native-toast-message';
-import axiosInstance from '../../utils/api-client';
-import {getUser} from '../../redux/features/user/userSlice';
+import {getMaxSelectableDateFor17YearsOld} from '../../Library/Common';
+import {windowHeight, windowWidth} from '../../utils/Dimensions';
 
 const OnboardingFlow = ({navigation}) => {
   const dispatch = useDispatch();
@@ -29,9 +30,25 @@ const OnboardingFlow = ({navigation}) => {
 
   const [fullName, setFullName] = useState('');
   const [country, setCountry] = useState('');
-  const [city, setCity] = useState('');
-  const [address, setAddress] = useState('');
+  const [emergencyContact, setEmergencyContact] = useState('');
   const [countryObject, setCountryObject] = useState('');
+  const [dob, setDob] = useState('');
+  const [address, setAddress] = useState('');
+
+  const [dateIcon, setDateIcon] = useState('calendar-outline');
+  const [dateField, setDateField] = useState(new Date());
+  const [open, setOpen] = useState(false);
+
+  const maximumDate = getMaxSelectableDateFor17YearsOld();
+  const formattedDob = moment(dob, 'MMM D, YYYY').format('YYYY-MM-DD');
+
+  console.log('phooo', formattedValue, value, phoneCountry, formattedDob);
+
+  // phone number section
+  const [value, setValue] = useState('');
+  const phoneInput = useRef(null);
+  const [formattedValue, setFormattedValue] = useState('');
+  const [phoneCountry, setPhoneCountry] = useState('NG');
 
   console.log('countdd', country, countryObject);
 
@@ -39,14 +56,18 @@ const OnboardingFlow = ({navigation}) => {
   const [formError, setFormError] = useState('');
   const [fullNameError, setFullNameError] = useState('');
   const [countryError, setCountryError] = useState('');
-  const [cityError, setCityError] = useState('');
+  const [emergencyContactError, setEmergencyContactError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [dobError, setDobError] = useState('');
   const [addressError, setAddressError] = useState('');
 
   const onboardUser = async () => {
     const onboardData = {
-      fullname: fullName,
+      fullName: fullName,
       country: country,
-      city: city,
+      emergencyContact: emergencyContact,
+      dateOfBirth: formattedDob,
+      phoneNumber: value,
       address: address,
     };
 
@@ -54,61 +75,10 @@ const OnboardingFlow = ({navigation}) => {
       setFullNameError('Please provide your full name');
     } else if (!country) {
       setCountryError('Provide your valid country');
-    } else if (!city) {
-      setCityError('Provide your city');
-    } else if (!address) {
-      setAddressError('Provide your valid address');
+    } else if (!emergencyContact) {
+      setEmergencyContactError('Provide your valid EmergencyContact');
     } else {
-      setLoading(true);
-      try {
-        await axiosInstance({
-          url: 'api/profile/profile',
-          method: 'POST',
-          data: onboardData,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-          .then(res => {
-            console.log('res', res);
-            setLoading(false);
-
-            if (res?.data) {
-              console.log('onboardUser data', res?.data);
-
-              checkUserProfile();
-            } else {
-              console.log('message', res?.data?.message);
-              setFormError(
-                'An error occured while onboarding your profile, please try again later',
-              );
-            }
-          })
-          .catch(err => {
-            console.log('onboardUser err', err?.response);
-            setLoading(false);
-            setFormError(err?.response?.data?.message);
-          });
-      } catch (error) {
-        console.log('onboardUser error', error);
-      }
-    }
-  };
-
-  const checkUserProfile = async () => {
-    try {
-      const profileResponse = await axiosInstance({
-        url: 'api/profile/profile',
-        method: 'GET',
-      });
-
-      if (profileResponse?.data) {
-        dispatch(getUser(profileResponse?.data?.data));
-        navigation.navigate('Login');
-        RNToast(Toast, 'Awesome. Your profile has been setup 😇');
-      }
-    } catch (error) {
-      console.error('checkUserProfile check error:', error);
+      navigation.navigate('OnboardingFlow2', onboardData);
     }
   };
 
@@ -162,25 +132,94 @@ const OnboardingFlow = ({navigation}) => {
             setCountryObject={setCountryObject}
           />
 
+          <View style={styles.auth}>
+            <Text style={styles.inputTitle}>Phone Number *</Text>
+            <PhoneInput
+              ref={phoneInput}
+              defaultValue={value}
+              defaultCode={phoneCountry}
+              layout="first"
+              placeholderTextColor="#666"
+              onChangeText={txt => {
+                setValue(txt);
+              }}
+              onChangeCountry={country => {
+                setPhoneCountry(country?.cca2);
+              }}
+              onChangeFormattedText={text => {
+                setFormattedValue(text);
+                setPhoneError('');
+              }}
+              // withDarkTheme
+              withShadow
+              // autoFocus
+              containerStyle={{
+                backgroundColor: '#fff',
+                borderRadius: 5,
+                width: windowWidth / 1.1,
+                borderWidth: 1,
+                borderColor: '#ccc',
+              }}
+              textContainerStyle={{
+                backgroundColor: '#fff',
+                height: windowHeight / 19,
+              }}
+              codeTextStyle={{
+                height: windowHeight / 36,
+                marginTop: 5,
+                color: 'black',
+              }}
+              textInputStyle={{color: 'black'}}
+              textInputProps={{
+                placeholderTextColor: '#666',
+                keyboardType: 'numeric',
+              }}
+            />
+            {phoneError ? (
+              <Text style={styles.validationError}>{phoneError}</Text>
+            ) : null}
+          </View>
+
           <FormInput
-            formInputTitle={'City'}
-            placeholder="Enter your city"
-            keyboardType={'default'}
-            value={city}
-            onChangeText={txt => {
-              setCity(txt);
+            formInputTitle={'Date of Birth'}
+            value={dateField}
+            onChangeText={text => {
+              setDateField(text);
+              setDob(text);
+              setDobError('');
               setFormError('');
-              setCityError('');
             }}
-            errorMessage={cityError}
+            onPress={() => setOpen(true)}
+            handlePasswordVisibility={() => setOpen(true)}
+            rightIcon={dateIcon}
+            iconColor="black"
+            placeholder={moment(dateField)?.format('dddd, MMMM D, YYYY')}
+            placeholderTextColor={'black'}
+            width={1.1}
+            errorMessage={dobError}
+          />
+
+          <DatePicker
+            mode="date"
+            modal
+            maximumDate={maximumDate}
+            open={open}
+            date={dateField}
+            onConfirm={date => {
+              setOpen(false);
+              setDateField(date);
+              setDob(date);
+              console.log('dddd', date);
+              setDobError('');
+            }}
+            onCancel={() => {
+              setOpen(false);
+            }}
           />
 
           <FormInput
             formInputTitle={'Address'}
-            numberOfLines={5}
-            multiLine={true}
             keyboardType={'default'}
-            height={100}
             placeholder="Enter your address"
             value={address}
             onChangeText={txt => {
@@ -189,6 +228,22 @@ const OnboardingFlow = ({navigation}) => {
               setFormError('');
             }}
             errorMessage={addressError}
+            multiLine={true}
+            numberOfLines={5}
+            height={100}
+          />
+
+          <FormInput
+            formInputTitle={'Emergency Contact'}
+            keyboardType={'number-pad'}
+            placeholder="Enter your emegency contact"
+            value={emergencyContact}
+            onChangeText={txt => {
+              setEmergencyContact(txt);
+              setEmergencyContactError('');
+              setFormError('');
+            }}
+            errorMessage={emergencyContactError}
           />
 
           <ScrollViewSpace />
@@ -197,7 +252,7 @@ const OnboardingFlow = ({navigation}) => {
         {/* Buttons */}
         <FixedBottomContainer top={1.3}>
           <FormButton
-            title={'Complete'}
+            title={'Continue'}
             width={1.1}
             onPress={onboardUser}
             loading={loading}
@@ -212,4 +267,12 @@ const OnboardingFlow = ({navigation}) => {
 
 export default OnboardingFlow;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  auth: {
+    width: windowWidth / 1.1,
+    alignSelf: 'center',
+    // marginTop: 30,
+    marginBottom: 10,
+    // backgroundColor: 'red',
+  },
+});

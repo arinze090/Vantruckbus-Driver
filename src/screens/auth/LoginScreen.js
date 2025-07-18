@@ -14,7 +14,6 @@ import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent
 import FixedBottomContainer from '../../components/common/FixedBottomContainer';
 import {COLORS} from '../../themes/themes';
 import FormButton from '../../components/form/FormButton';
-import {emailValidator} from '../../Library/Validation';
 import FormInput from '../../components/form/FormInput';
 import {windowWidth} from '../../utils/Dimensions';
 import {
@@ -22,7 +21,6 @@ import {
   saveAccessToken,
   saveLoginTime,
   saveRefreshToken,
-  saveUserPreferences,
   saveUserRole,
   setUserDestination,
 } from '../../redux/features/user/userSlice';
@@ -94,8 +92,8 @@ const LoginScreen = ({navigation, route}) => {
               console.log('Login data', res?.data);
               dispatch(saveUserRole(res?.data?.role));
 
-              if (res?.data?.role == 'User') {
-                checkUserProfile(
+              if (res?.data?.role === 'Driver') {
+                checkDriverProfile(
                   res?.data?.access_token,
                   res?.data?.refresh_token,
                 );
@@ -131,7 +129,7 @@ const LoginScreen = ({navigation, route}) => {
     }
   };
 
-  const checkUserProfile = async (access_token, refresh_token) => {
+  const checkDriverProfile = async (access_token, refresh_token) => {
     try {
       if (!access_token) {
         navigation.navigate('LoginScreen');
@@ -144,7 +142,7 @@ const LoginScreen = ({navigation, route}) => {
       dispatch(saveLoginTime(Date.now()));
 
       const profileResponse = await axiosInstance({
-        url: 'api/profile/profile',
+        url: 'api/profile/driverprofile',
         method: 'GET',
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -162,7 +160,7 @@ const LoginScreen = ({navigation, route}) => {
         navigation.navigate('OnboardingFlow');
       }
     } catch (error) {
-      console.error('checkUserProfile check error:', error?.response);
+      console.error('checkDriverProfile check error:', error?.response);
       navigation.navigate('OnboardingFlow');
     }
   };
@@ -172,7 +170,7 @@ const LoginScreen = ({navigation, route}) => {
       <KeyboardAvoidingComponent>
         <View style={styles.imageContainer}>
           <Image
-            source={require('../../assets/VTBLogo.png')}
+            source={require('../../assets/VTBDriver.png')}
             style={styles.ndonuLogo}
           />
         </View>
@@ -269,7 +267,7 @@ const LoginScreen = ({navigation, route}) => {
             <TouchableOpacity
               style={styles.signup}
               onPress={() => {
-                dispatch(setUserDestination('Registration'));
+                dispatch(setUserDestination('Login'));
                 navigation.navigate('Register');
               }}>
               <Text

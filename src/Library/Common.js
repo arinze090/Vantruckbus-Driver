@@ -370,3 +370,24 @@ export const metersToKilometers = meters => {
   }
   return `${(meters / 1000).toFixed(2)}`;
 };
+
+export function getMaxSelectableDateFor17YearsOld() {
+  const today = new Date();
+  // Subtract 17 years from today's date
+  const year = today.getFullYear() - 17;
+  const month = today.getMonth();
+  const day = today.getDate();
+
+  return new Date(year, month, day);
+}
+
+export const getStatusConfig = status => {
+  switch (status?.toLowerCase()) {
+    case 'verified':
+      return {icon: 'check-circle', color: 'green', label: 'Verified'};
+    case 'pending':
+      return {icon: 'hourglass-top', color: 'orange', label: 'Pending'};
+    default:
+      return {icon: 'cancel', color: 'red', label: 'Not Verified'};
+  }
+};

@@ -64,28 +64,22 @@ const RegisterScreen1 = ({navigation}) => {
     }
   };
 
-  const registerUser = async () => {
+  const registerDriver = async () => {
     const registerData = {
       email: email,
       password: newPassword,
-      role: 'User',
-      // fullName: fullName,
-      phoneNumber: formattedValue,
+      role: 'Driver',
     };
 
-    if (!fullName) {
-      setFullNameError('Please provide your full name');
-    } else if (!email) {
+    if (!email) {
       setEmailError('Provide your email address');
-    } else if (!formattedValue) {
-      setPhoneError('Provide your valid phone number');
     } else if (!newPassword) {
       setPasswordError('Provide your password');
     } else {
       setLoading(true);
       try {
         await axiosInstance({
-          url: 'api/auth/signup',
+          url: 'api/auth/driver-signup',
           method: 'POST',
           data: registerData,
           headers: {
@@ -93,11 +87,11 @@ const RegisterScreen1 = ({navigation}) => {
           },
         })
           .then(res => {
-            console.log('res', res);
+            console.log('registerDriver res', res);
             setLoading(false);
 
             if (res?.data) {
-              console.log('register data', res?.data);
+              console.log('registerDriver data', res?.data);
 
               RNToast(
                 Toast,
@@ -116,7 +110,7 @@ const RegisterScreen1 = ({navigation}) => {
             );
           });
       } catch (error) {
-        console.log('Login error', error);
+        console.log('registerDriver error', error);
       }
     }
   };
@@ -151,19 +145,6 @@ const RegisterScreen1 = ({navigation}) => {
           </View>
 
           <FormInput
-            formInputTitle={'Full Name'}
-            keyboardType={'default'}
-            placeholder="Enter your Fullname"
-            value={fullName}
-            onChangeText={txt => {
-              setFullName(txt);
-              setFullNameError('');
-              setFormError('');
-            }}
-            errorMessage={fullNameError}
-          />
-
-          <FormInput
             formInputTitle={'Email Address'}
             placeholder="Enter your email address"
             keyboardType={'email-address'}
@@ -179,54 +160,6 @@ const RegisterScreen1 = ({navigation}) => {
             }}
             errorMessage={emailError}
           />
-
-          <View style={styles.auth}>
-            <Text style={styles.inputTitle}>Phone Number *</Text>
-            <PhoneInput
-              ref={phoneInput}
-              defaultValue={value}
-              defaultCode={phoneCountry}
-              layout="first"
-              placeholderTextColor="#666"
-              onChangeText={txt => {
-                setValue(txt);
-              }}
-              onChangeCountry={country => {
-                setPhoneCountry(country?.cca2);
-              }}
-              onChangeFormattedText={text => {
-                setFormattedValue(text);
-                setPhoneError('');
-              }}
-              // withDarkTheme
-              withShadow
-              // autoFocus
-              containerStyle={{
-                backgroundColor: '#fff',
-                borderRadius: 5,
-                width: windowWidth / 1.1,
-                borderWidth: 1,
-                borderColor: '#ccc',
-              }}
-              textContainerStyle={{
-                backgroundColor: '#fff',
-                height: windowHeight / 19,
-              }}
-              codeTextStyle={{
-                height: windowHeight / 36,
-                marginTop: 5,
-                color: 'black',
-              }}
-              textInputStyle={{color: 'black'}}
-              textInputProps={{
-                placeholderTextColor: '#666',
-                keyboardType: 'numeric',
-              }}
-            />
-            {phoneError ? (
-              <Text style={styles.validationError}>{phoneError}</Text>
-            ) : null}
-          </View>
 
           <FormInput
             formInputTitle={'Password'}
@@ -256,7 +189,7 @@ const RegisterScreen1 = ({navigation}) => {
           <FormButton
             title={'Sign Up'}
             width={1.1}
-            onPress={registerUser}
+            onPress={registerDriver}
             loading={loading}
             disabled={loading}
             formError={formError}

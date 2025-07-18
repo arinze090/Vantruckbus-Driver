@@ -15,6 +15,7 @@ import {checkUserProfile} from '../../services/userServices';
 import axiosInstance from '../../utils/api-client';
 import {RNToast} from '../../Library/Common';
 import {getUser, signOut} from '../../redux/features/user/userSlice';
+import DocumentPreviewList from '../../components/common/DocumentPreviewList';
 
 const ProfileInformation = ({navigation}) => {
   const dispatch = useDispatch();
@@ -24,7 +25,8 @@ const ProfileInformation = ({navigation}) => {
   console.log('loggedInUserRole', loggedInUserRole);
 
   const userProfle = state?.user?.user;
-  console.log('userProfle', userProfle);
+  const hasVerificationData = userProfle?.User?.verification;
+  console.log('userProfle', userProfle, hasVerificationData);
 
   const [loading, setLoading] = useState(false);
 
@@ -32,15 +34,12 @@ const ProfileInformation = ({navigation}) => {
     userProfle?.User?.email ? userProfle?.User?.email : '',
   );
   const [fullName, setFullName] = useState(
-    userProfle?.fullname ? userProfle?.fullname : '',
+    userProfle?.fullName ? userProfle?.fullName : '',
   );
   const [phoneNumber, setPhoneNumber] = useState(
-    userProfle?.User?.phoneNumber ? userProfle?.User?.phoneNumber : '',
+    userProfle?.phoneNumber ? userProfle?.phoneNumber : '',
   );
-  const [country, setCountry] = useState(
-    userProfle?.country ? userProfle?.country : '',
-  );
-  const [city, setCity] = useState(userProfle?.city ? userProfle?.city : '');
+
   const [address, setAddress] = useState(
     userProfle?.address ? userProfle?.address : '',
   );
@@ -50,13 +49,11 @@ const ProfileInformation = ({navigation}) => {
   const [fullNameError, setFullNameError] = useState('');
   const [phoneNumberError, setPhoneNumberError] = useState('');
   const [addressError, setAddressError] = useState('');
-  const [cityError, setCityError] = useState('');
 
   const updateProfile = async () => {
     const updateProfileData = {
-      fullname: fullName,
+      fullName: fullName,
       // phone_number: phoneNumber,
-      city: city,
       address: address,
       // country: userProfle?.country,
     };
@@ -65,10 +62,8 @@ const ProfileInformation = ({navigation}) => {
 
     if (!fullName) {
       setFullNameError('Please provide your fullname');
-    // } else if (!phoneNumber) {
-    //   setPhoneNumberError('Please provide your valid phone number');
-    } else if (!city) {
-      setCityError('Please provide your city');
+      // } else if (!phoneNumber) {
+      //   setPhoneNumberError('Please provide your valid phone number');
     } else if (!address) {
       setAddressError('Please provide a valid address');
     } else {
@@ -140,7 +135,7 @@ const ProfileInformation = ({navigation}) => {
         contentContainerStyle={{paddingTop: 0}}>
         <View style={styles.profileImageSection}>
           <Image
-            source={require('../../assets/user-dummy-img.jpg')}
+            source={{uri: userProfle?.profilePicture}}
             style={styles.profileImage}
           />
         </View>
@@ -180,6 +175,7 @@ const ProfileInformation = ({navigation}) => {
           keyboardType={'number-pad'}
           value={phoneNumber}
           width={1.1}
+          editable={false}
           autoCapitalize="none"
           autoCorrect={false}
           onChangeText={txt => {
@@ -190,35 +186,6 @@ const ProfileInformation = ({navigation}) => {
           errorMessage={phoneNumberError}
         />
 
-        <FormInput
-          formInputTitle={'City'}
-          placeholder=""
-          keyboardType={'default'}
-          value={city}
-          width={1.1}
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={txt => {
-            setCity(txt);
-            setFormError('');
-            setCityError('');
-          }}
-          errorMessage={cityError}
-        />
-        <FormInput
-          formInputTitle={'Country'}
-          placeholder="Country"
-          keyboardType={'default'}
-          editable={false}
-          value={country}
-          width={1.1}
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={txt => {
-            setCountry(txt);
-            setFormError('');
-          }}
-        />
         <FormInput
           formInputTitle={'Address'}
           numberOfLines={5}
@@ -236,6 +203,10 @@ const ProfileInformation = ({navigation}) => {
             setAddressError('');
           }}
           errorMessage={addressError}
+        />
+
+        <DocumentPreviewList
+          documents={hasVerificationData?.supportingDocuments}
         />
 
         <ScrollViewSpace />

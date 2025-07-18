@@ -13,7 +13,6 @@ import SafeAreaViewComponent from '../../components/common/SafeAreaViewComponent
 import FixedBottomContainer from '../../components/common/FixedBottomContainer';
 import {RNToast} from '../../Library/Common';
 import axiosInstance from '../../utils/api-client';
-import {setUserDestination} from '../../redux/features/user/userSlice';
 
 const EmailVerificationScreen = ({navigation, props, route}) => {
   const item = route?.params;

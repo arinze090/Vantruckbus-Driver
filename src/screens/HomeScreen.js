@@ -5,39 +5,88 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Geolocation from '@react-native-community/geolocation';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {HERE_API_KEY} from '@env';
+import Toast from 'react-native-toast-message';
+import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 
-import ScrollViewSpace from '../components/common/ScrollViewSpace';
 import {
+  getUser,
   saveTruckListings,
   saveUserLocationCoordinates,
 } from '../redux/features/user/userSlice';
-import axiosInstance, {baseURL} from '../utils/api-client';
+import axiosInstance from '../utils/api-client';
 import {COLORS} from '../themes/themes';
 import {windowHeight, windowWidth} from '../utils/Dimensions';
-import VtbTruckCard from '../components/cards/VtbTruckCard';
-import {getTimeOfDayGreeting} from '../Library/Common';
-import SearchBar from '../components/search/SearchBar';
+import {getTimeOfDayGreeting, RNToast} from '../Library/Common';
+import {checkDriverProfile} from '../services/userServices';
+import DriverNotVerifiedComponent from '../components/common/DriverNotVerifiedComponent';
+import DriverNotAssignedToTruckComponent from '../components/common/DriverNotAssignedToTruckComponent';
 
 const HomeScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const state = useSelector(state => state);
+  const mapRef = useRef(null);
 
   const userProfle = state?.user?.user;
-  console.log('userProfle', userProfle);
+  const hasVerificationData = userProfle?.User?.verification;
+  console.log('userProfle', userProfle, hasVerificationData);
 
   const reduxTruckListings = state?.user?.truckListings;
   console.log('reduxTruckListings', reduxTruckListings);
 
-  const greeting = getTimeOfDayGreeting();
+  const [loading, setLoading] = useState(false);
 
   const [userLiveAddress, setUserLiveAddress] = useState();
   const [coordinates, setCoordinates] = useState();
+  const [isOnline, setIsOnline] = useState(false);
+
+  const [location, setLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+  console.log('location', location, errorMsg);
+  console.log('coordinates', coordinates);
+
+  const toggleOnlineStatus = async () => {
+    if (userProfle?.assignedTrucks) {
+      setIsOnline(!isOnline);
+
+      const locationUpdateData = {
+        listingId: userProfle?.assignedTrucks[0]?.truckId,
+        location: [coordinates],
+      };
+
+      try {
+        await axiosInstance({
+          url: 'api/location/driver-location',
+          method: 'POST',
+          data: locationUpdateData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then(res => {
+            console.log('toggleOnlineStatus res', res?.data);
+
+            // fetch the userprofile again here
+            checkDriverProfile(dispatch, getUser, axiosInstance, setLoading);
+          })
+          .catch(err => {
+            console.log('toggleOnlineStatus err', err?.response?.data);
+          });
+      } catch (error) {
+        console.log('toggleOnlineStatus error', error);
+      }
+    } else {
+      RNToast(
+        Toast,
+        'You are not yet a truck driver or assigned to a truck yet',
+      );
+    }
+  };
 
   const fetchTruckListings = async () => {
     try {
@@ -104,120 +153,85 @@ const HomeScreen = ({navigation}) => {
     );
   }, []);
 
+  // to update the drivers location real time
+  useEffect(() => {
+    if (coordinates && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
+  }, [coordinates]);
+
   return (
     <View style={{flex: 1}} showsVerticalScrollIndicator={false}>
-      <View
-        style={{
-          backgroundColor: COLORS.vtbBtnColor,
-          marginBottom: 20,
-          borderBottomLeftRadius: 20,
-          borderBottomRightRadius: 20,
-        }}>
-        <View style={styles.container}>
-          <View style={styles.profileSection}>
-            <TouchableOpacity style={styles.menuBorder} activeOpacity={0.9}>
-              <Ionicons
-                name="location-outline"
-                size={25}
-                color="black"
-                onPress={() => {
-                  navigation.openDrawer();
-                }}
-              />
+      {!userProfle?.isVerified &&
+      !hasVerificationData?.supportingDocuments?.length ? (
+        <DriverNotVerifiedComponent />
+      ) : !userProfle?.assignedTrucks?.length ? (
+        <DriverNotAssignedToTruckComponent />
+      ) : (
+        <View style={{flex: 1}}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.menuButton}>
+              <Ionicons name="menu" size={24} color="#fff" />
             </TouchableOpacity>
 
-            <View style={styles.profileDetails}>
-              {/* <Text style={styles.profileName}>
-                Hello,{' '}
-                <Text style={{fontWeight: '600'}}>{userProfle?.fullname} </Text>
-              </Text> */}
-              <Text
-                numberOfLines={2}
-                style={{
-                  fontSize: 14,
-                  color: 'white',
-                  width: windowWidth / 2,
-                  // backgroundColor: 'red',
-                }}>
-                {userLiveAddress}
-              </Text>
-            </View>
+            <TouchableOpacity style={styles.shieldButton}>
+              <Ionicons name="shield-checkmark" size={24} color="#fff" />
+            </TouchableOpacity>
           </View>
 
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          {/* Map Container */}
+          <View style={styles.mapContainer}>
+            <MapView
+              ref={mapRef}
+              style={styles.map}
+              provider={PROVIDER_GOOGLE}
+              region={
+                coordinates
+                  ? {
+                      latitude: coordinates.latitude,
+                      longitude: coordinates.longitude,
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }
+                  : null
+              }
+              showsUserLocation={true}
+              showsMyLocationButton={false}
+              zoomEnabled={true}
+              scrollEnabled={true}>
+              <Marker coordinate={coordinates}>
+                <Ionicons
+                  name="car-outline"
+                  size={50}
+                  color={COLORS.vtbBtnColor}
+                />
+              </Marker>
+            </MapView>
+          </View>
+
+          {/* Go Online Button */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={[styles.onlineButton, isOnline && styles.onlineButtonActive]}
+            onPress={toggleOnlineStatus}>
             <Ionicons
-              name="notifications-outline"
+              name="chevron-forward"
               size={24}
-              color="white"
-              onPress={() => {
-                navigation.navigate('Notification');
-              }}
-              style={{marginLeft: 24}}
+              color="#fff"
+              style={styles.onlineButtonIcon}
             />
-          </View>
+            <Text style={styles.onlineButtonText}>
+              {isOnline ? 'Go offline' : 'Go online'}
+            </Text>
+          </TouchableOpacity>
         </View>
-        <View
-          style={{
-            padding: 20,
-            justifyContent: 'center',
-            alignContent: 'center',
-            alignItems: 'center',
-          }}>
-          <Text style={{fontSize: 14, color: 'white', marginBottom: 10}}>
-            {greeting}, {userProfle?.fullname}!
-          </Text>
-          <Text style={{fontSize: 22, color: 'white', fontWeight: '600'}}>
-            Want to Book a Truck ?
-          </Text>
-        </View>
-      </View>
-
-      <SearchBar
-        onPressIn={() =>
-          navigation.navigate('MapsSearchScreen', {
-            userLiveAddress: userLiveAddress,
-            coordinates: coordinates,
-          })
-        }
-        searchPlaceholder={'Where to'}
-        searchIcon={'search-outline'}
-      />
-
-      {/* Carousel section */}
-      {/* <Carousels /> */}
-
-      {/* Popular Trucks */}
-      <ScrollView
-        contentContainerStyle={{padding: 20}}
-        showsVerticalScrollIndicator={false}>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginBottom: 10,
-          }}>
-          <Text style={{fontSize: 14, fontWeight: '600'}}>Popular Trucks</Text>
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: '400',
-              textDecorationLine: 'underline',
-            }}>
-            See More
-          </Text>
-        </View>
-        {reduxTruckListings?.map((cur, i) => (
-          <VtbTruckCard
-            key={i}
-            props={cur}
-            onPress={() => {
-              navigation.navigate('TruckDetails', cur);
-            }}
-          />
-        ))}
-
-        <ScrollViewSpace />
-      </ScrollView>
+      )}
     </View>
   );
 };
@@ -226,65 +240,89 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
-    display: 'flex',
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
-    // backgroundColor: '#F7F7F7',
-    borderBottomRightRadius: 30,
-    borderBottomLeftRadius: 30,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: 40,
-  },
-  profileSection: {
-    display: 'flex',
-    flexDirection: 'row',
     alignItems: 'center',
-    // padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
   },
-  profileDetails: {
-    // alignItems: 'center',
-    marginLeft: 10,
-    justifyContent: 'space-between',
-    // backgroundColor: 'red',
-  },
-  image: {
-    width: 50,
-    height: 50,
-    borderRadius: 30,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: '400',
-    lineHeight: 24,
-    color: 'white',
-  },
-  profileEmail: {
-    fontSize: 14,
-    fontWeight: '400',
-    lineHeight: 24,
-    color: '#000',
-  },
-  wallet: {
-    padding: 10,
-    flexDirection: 'row',
+  menuButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
-    backgroundColor: COLORS.pinky,
     alignItems: 'center',
-    borderRadius: 10,
-    marginRight: 6,
   },
-  walletBalance: {
-    color: 'black',
-    fontWeight: '700',
-    fontSize: 14,
-    marginRight: 6,
+  shieldButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  menuBorder: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 6,
+  mapContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  map: {
+    flex: 1,
+  },
+  carIconContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{translateX: -20}, {translateY: -15}],
+    zIndex: 1,
+  },
+  carIcon: {
+    width: 40,
+    height: 30,
+    position: 'relative',
+  },
+  carBody: {
+    width: 40,
+    height: 20,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    position: 'absolute',
+    top: 5,
+  },
+  onlineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00C851',
+    marginHorizontal: 0,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+
+    padding: 20,
+    justifyContent: 'center',
+  },
+  onlineButtonActive: {
+    backgroundColor: '#ff4444',
+  },
+  onlineButtonIcon: {
+    marginRight: 12,
+  },
+  onlineButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

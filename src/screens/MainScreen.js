@@ -489,28 +489,14 @@ const MainScreen = () => {
           headerShown: false,
         })}
       />
-      <Tab.Screen
-        name="Trucks"
-        component={userProfle ? TruckListingStack : AuthStack}
-        options={({route}) => ({
-          tabBarLabel: 'Trucks',
-          tabBarIcon: ({color}) => (
-            <MaterialCommunityIcons
-              name="truck-outline"
-              color={color}
-              size={26}
-            />
-          ),
-          headerShown: false,
-        })}
-      />
+
       <Tab.Screen
         name={'Bookings'}
         component={userProfle ? TruckBookingsStack : AuthStack}
         options={({route}) => ({
-          tabBarLabel: 'My Bookings',
+          tabBarLabel: 'My Rides',
           tabBarIcon: ({color}) => (
-            <Ionicons name="receipt-outline" color={color} size={26} />
+            <Ionicons name="speedometer-outline" color={color} size={26} />
           ),
           headerShown: false,
         })}

@@ -7,7 +7,10 @@ const SplashScreen = () => {
   return (
     <SafeAreaView style={[styles.container]}>
       <View style={styles.logoContainer}>
-        <Image style={styles.logo} source={require('../assets/VTBLogo.png')} />
+        <Image
+          style={styles.logo}
+          source={require('../assets/VTBDriver.png')}
+        />
       </View>
     </SafeAreaView>
   );
@@ -17,7 +20,7 @@ export default SplashScreen;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.vtbBtnColor,
     height: windowHeight,
   },
   logo: {

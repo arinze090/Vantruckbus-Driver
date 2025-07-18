@@ -1,16 +1,24 @@
-export const checkUserProfile = async (dispatch, getUser, axiosInstance) => {
+export const checkDriverProfile = async (
+  dispatch,
+  getUser,
+  axiosInstance,
+  setLoading,
+) => {
   try {
     const profileResponse = await axiosInstance({
-      url: 'api/profile/profile',
+      url: 'api/profile/driverprofile',
       method: 'GET',
     });
+
+    console.log('checkDriverProfile res', profileResponse?.data);
+    setLoading(false);
 
     if (profileResponse?.data) {
       dispatch(getUser(profileResponse?.data));
     }
   } catch (error) {
-    console.error('checkUserProfile check error:', error);
-    // navigation.navigate("OnboardingFlow1");
+    console.error('checkDriverProfile check error:', error);
+    setLoading(false);
   }
 };
 
