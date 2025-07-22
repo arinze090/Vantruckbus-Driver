@@ -24,7 +24,7 @@ import {
   saveUserRole,
   setUserDestination,
 } from '../../redux/features/user/userSlice';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import KeyboardAvoidingComponent from '../../components/form/KeyboardAvoidingComponent';
 import axiosInstance from '../../utils/api-client';
 import {RNToast} from '../../Library/Common';
@@ -35,6 +35,8 @@ const LoginScreen = ({navigation, route}) => {
   console.log('hgsgs', item);
 
   const dispatch = useDispatch();
+  const state = useSelector(state => state);
+  console.log('stattaa', state);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

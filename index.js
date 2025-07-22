@@ -12,6 +12,44 @@ import Toast from 'react-native-toast-message';
 import {Fragment} from 'react';
 import {windowHeight, windowWidth} from './src/utils/Dimensions';
 import {COLORS} from './src/themes/themes';
+import messaging from '@react-native-firebase/messaging';
+import notifee from '@notifee/react-native';
+
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.log('backgroundMessage!', remoteMessage);
+  const pushObject = {
+    title: remoteMessage?.notification?.title,
+    body: remoteMessage?.notification?.body,
+    ios: {
+      // attachments: [
+      //  {
+      //      url: remoteMessage?.data?.url,
+      //  },
+      // ],
+      foregroundPresentationOptions: {
+        badge: true,
+        sound: true,
+        banner: true,
+        list: true,
+      },
+    },
+  };
+  if (remoteMessage?.data?.url) {
+    pushObject.ios.attachments = [
+      {
+        url: remoteMessage?.data?.url,
+      },
+    ];
+  }
+  await notifee.displayNotification(pushObject);
+});
+
+messaging()
+  .getIsHeadless()
+  .then(isHeadless => {
+    // do sth with isHeadless
+    console.log('isHeadless', isHeadless);
+  });
 
 const RootApp = ({isHeadless}) => {
   const toastConfig = {
